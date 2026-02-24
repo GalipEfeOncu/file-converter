@@ -1,0 +1,12 @@
+{
+    "en": {
+        "title": "Modern File Converter & Reader",
+        "btn_convert": "Convert Now",
+        "msg_error": "An error occurred!"
+    },
+    "tr": {
+        "title": "Modern Dosya Çevrimi & Okuyucu",
+        "btn_convert": "Şimdi Dönüştür",
+        "msg_error": "Bir hata oluştu!"
+    }
+}
