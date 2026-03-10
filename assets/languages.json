@@ -1,12 +1,33 @@
 {
-    "en": {
-        "title": "Modern File Converter & Reader",
-        "btn_convert": "Convert Now",
-        "msg_error": "An error occurred!"
+    "_metadata": {
+        "module": "assets/languages.json — Uygulama İçi Metinler ve Dil Desteği (i18n)",
+        "responsibility": "Kalite Güvence & Test Uzmanı (QA)",
+        "description": "Uygulamanın Türkçe ve İngilizce dil çevirilerini tutar.",
+        "rules": [
+            "1. JSON formatında normal yorum (// veya #) kullanılamayacağı için _metadata altında yazılmıştır.",
+            "2. Yeni bir metin ekleneceği zaman, anahtarın (key) DİL BAŞLIKLARI (örn. 'tr' ve 'en') altına aynı isimle eklenmesi ZORUNLUDUR.",
+            "3. Eklenen metin id'leri snake_case string (örn: error_file_not_found) formatında olmalıdır.",
+            "4. JSON formatını bozmamak için virgül (,) kullanımına dikkat ediniz."
+        ]
     },
     "tr": {
-        "title": "Modern Dosya Çevrimi & Okuyucu",
-        "btn_convert": "Şimdi Dönüştür",
-        "msg_error": "Bir hata oluştu!"
+        "app_title": "Modern Dosya Dönüştürücü",
+        "sidebar_title": "Navigasyon",
+        "upload_file": "Dosyalarınızı buraya sürükleyin veya seçin",
+        "convert_tab": "🔄 Dönüştür",
+        "view_tab": "👁️ Görüntüle",
+        "ai_tab": "🧠 AI Analizi",
+        "error_unsupported_file": "Desteklenmeyen dosya türü. Lütfen geçerli bir dosya yükleyin.",
+        "success_conversion": "Dosya başarıyla dönüştürüldü!"
+    },
+    "en": {
+        "app_title": "Modern File Converter",
+        "sidebar_title": "Navigation",
+        "upload_file": "Drag and drop your files here or browse",
+        "convert_tab": "🔄 Convert",
+        "view_tab": "👁️ View",
+        "ai_tab": "🧠 AI Analysis",
+        "error_unsupported_file": "Unsupported file type. Please upload a valid file.",
+        "success_conversion": "File successfully converted!"
     }
 }

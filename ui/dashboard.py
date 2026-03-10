@@ -1,18 +1,30 @@
-import customtkinter as ctk
-
-class MainDashboard(ctk.CTkFrame):
-    """Uygulamanın ana ekran yerleşimini içeren frame."""
-
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-        # Buraya butonlar, sidebar ve içerik alanı tasarlanacak
-        self.label = ctk.CTkLabel(self, text="Dashboard Yüklendi", font=("Arial", 20))
-        self.label.pack(pady=20)
-
-if __name__ == "__main__":
-    # Tek başına çalıştırınca boş bir pencerede dashboard'u görsün diye
-    root = ctk.CTk()
-    root.geometry("400x300")
-    dash = MainDashboard(root)
-    dash.pack(expand=True, fill="both")
-    root.mainloop()
+# =============================================================================
+# ui/dashboard.py — Streamlit Sayfa Düzeni ve Bileşenler
+# =============================================================================
+#
+# SORUMLULUK: Arayüz Tasarımcısı
+#
+# Bu dosya uygulamanın tüm görsel düzenini, sekmeleri ve etkileşimli
+# UI bileşenlerini içerir. Görevleri:
+#
+#   1. SAYFA DÜZENİ (LAYOUT):
+#      - st.sidebar kullanarak gezinme, ayarlar ve yükleme alanları sunmak.
+#      - st.tabs ile modülleri (Dönüştür / Görüntüle / AI Analiz) ayırmak.
+#      - st.columns ile yan yana düzenler oluşturmak (örn. "Orijinal Dosya"
+#        ve "Dönüştürülen Dosya").
+#
+#   2. BİLEŞENLER:
+#      - st.file_uploader: Kullanıcıdan giriş dosyalarını almak.
+#      - st.button, st.selectbox, st.radio vb.: Kullanıcı etkileşimlerini almak.
+#      - st.spinner, st.success, st.error: İşlem durumlarını göstermek.
+#      - st.metric: AI analizi sonucu elde edilen sayısal verileri vb. sunmak.
+#
+#   3. TASARIM KURALLARI:
+#      - Bu dosya içinde iş mantığı (API çağırma, dönüşüm algoritması)
+#        KESİNLİKLE yer almaz.
+#      - Fonksiyonlar sadece UI'ı çizer ve kullanıcı girişlerini main.py'ye
+#        veya session_state'e aktarır.
+#
+# BAĞIMLILIKLAR: streamlit
+#
+# =============================================================================

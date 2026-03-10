@@ -1,6 +1,5 @@
-# --- Arayüz ve Görselleştirme ---
-customtkinter      # Modern ve karanlık tema destekli GUI
-Pillow             # Resim işleme (PNG/JPG/WEBP dönüşümleri)
+# --- Arayüz ---
+streamlit            # Web tabanlı uygulama arayüzü 
 
 # --- Belge ve Tablo İşlemleri ---
 pandas             # CSV ve Excel işlemleri
@@ -8,6 +7,7 @@ openpyxl           # Excel dosyalarını yazmak için gerekli
 python-docx        # Word (.docx) dosyalarını okuma/yazma
 PyPDF2             # PDF metin çıkarma ve basit işlemler
 PyMuPDF            # PDF'leri resme çevirme (Görüntüleyici için fitz)
+Pillow             # Resim işleme (PNG/JPG/WEBP dönüşümleri)
 
 # --- Ses ve Medya ---
 pydub              # Ses formatı dönüştürme (MP3/WAV/OGG)
@@ -17,6 +17,6 @@ pydub              # Ses formatı dönüştürme (MP3/WAV/OGG)
 openai             # AI Analiz modülü (Özetleme, Soru-Cevap)
 
 # --- Yardımcı Araçlar ---
-python-dotenv      # API anahtarlarını güvenli saklamak için
+python-dotenv      # API anahtarlarını güvenli saklamak için (.env dosyası)
 
-# Sanal ortama girip pip install -r requirements.txt komutunu çalıştırın.
+# Kurulum: pip install -r requirements.txt

@@ -1,37 +1,19 @@
-import customtkinter as ctk
-
-# Diğer modülleri import etme provaları (Takım arkadaşlarına örnek göstermek için)
-from config.settings import Config
-from ui.dashboard import MainDashboard
-from core.ai_engine import AIEngine
-from core.converter import FileConverter
-from core.viewer import FileViewer
-from core.player import MediaPlayer
-
-class App(ctk.CTk):
-    """Projenin Başlatıcı (Main) Motoru"""
-    def __init__(self):
-        super().__init__()
-        
-        # 1. Config'den ayarları çekelim
-        self.title(Config.APP_NAME)
-        self.geometry("900x600")
-        ctk.set_appearance_mode(Config.DEFAULT_THEME)
-
-        # 2. Arka Plan Sınıflarını (Core Modüllerini) Başlatıyoruz
-        self.ai = AIEngine()
-        self.converter = FileConverter()
-        self.viewer = FileViewer()
-        self.player = MediaPlayer()
-
-        # 3. Kullanıcı Arayüzünü (UI - Dashboard) Sisteme Entegre Ediyoruz
-        # Master olarak 'self' (Yani bu ana pencereyi) veriyoruz ki UI bunun içine otursun.
-        self.dashboard = MainDashboard(master=self)
-        self.dashboard.pack(expand=True, fill="both")
-
-        # 4. Modülleri birbirine bağlama (Mimarın Asıl Görevi)
-        # Örnek: dashboard.py'da tıklandığında, converter.py çalışsın v.b.
-
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+# =============================================================================
+# main.py — Streamlit Uygulama Giriş Noktası & Durum Yönetimi
+# =============================================================================
+#
+# SORUMLULUK: Mimar (Galip Efe Öncü)
+#
+# Bu dosya uygulamanın kalbidir. Görevleri:
+#
+#   1. Streamlit sayfa konfigürasyonunu (st.set_page_config) kurmak.
+#   2. session_state üzerinden global uygulama durumunu (seçili dosya, aktif mod, seçili dil vb.) başlatmak ve yönetmek.
+#   3. ui/dashboard.py'den sayfa düzenini, ui/styles.py'den CSS enjeksiyonunu import ederek uygulamak.
+#   4. Kullanıcının seçtiği moda göre (Dönüştür / Görüntüle / AI Analiz) core/ modüllerini (converter, viewer, ai_engine, player) çağırmak.
+#   5. Sidebar'da dosya yükleme (st.file_uploader / sürükle-bırak), mod seçimi ve dil seçeneği sunmak.
+#   6. config/settings.py'den uygulama geneli sabitleri okumak.
+#
+# KULLANIM:
+#   streamlit run main.py
+#
+# =============================================================================
