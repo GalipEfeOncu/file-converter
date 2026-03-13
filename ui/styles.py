@@ -1,25 +1,22 @@
-# =============================================================================
-# ui/styles.py — CSS Tema ve Modern Tasarım Sistemi
-# =============================================================================
-#
-# SORUMLULUK: Arayüz Tasarımcısı
-#
-# Bu modül, Streamlit uygulamasının görünümünü modernize etmek için özel CSS enjeksiyonu sağlar. Görevleri:
-#
-#   1. TEMA VE RENK PALETİ:
-#      - Hem açık hem de karanlık temaya uyumlu, minimal ve düz (flat) bir CSS strüktürü kurmak.
-#      - Gradient alanlar ve kutu gölgeleri (box-shadow) KESİNLİKLE kullanılmayacaktır.
-#      - Kenar yuvarlatmaları (border-radius) çok ufak (örn. 2px-4px) tutulacaktır.
-#
-#   2. STREAMLIT OVERRIDES:
-#      - Streamlit'in varsayılan buton (st.button) tasarımını daha
-#        çekici hale getirmek.
-#      - Sidebar ve ana içerik alanlarının arka planlarını ayrıştırmak.
-#      - Header ve Typography (Google Fonts vb.) ayarlarını uygulamak.
-#
-#   3. UYGULAMA METODU:
-#      - CSS kodları python string'leri olarak tanımlanır.
-#      - st.markdown("<style>...</style>", unsafe_allow_html=True)
-#        kullanılarak `main.py` içinde projeye entegre edilir.
-#
-# =============================================================================
+"""
+ui/styles.py — CSS ve Görsel Özelleştirme
+Sahibi: Samet Demir (Arayüz Tasarımcısı)
+
+Senin Görevin:
+Uygulamayı Streamlit'in standart görünümünden çıkarıp, özel CSS enjeksiyonları ile kurumsal ve modern bir tasarıma (karanlık tema, özel butonlar vb.) kavuşturmak.
+
+Çıktı: "Uygulama geneline uygulanan modern CSS stilleri."
+"""
+
+import streamlit as st
+
+def apply_custom_css():
+    """Uygulama geneline özel CSS enjekte eder."""
+    custom_css = """
+    <style>
+        /* Samet Demir — Özel CSS kodları buraya yazılacak */
+        /* Örn: .stButton>button { background-color: #4CAF50; } */
+    </style>
+    """
+    # TODO: Samet Demir — Kurumsal kimliğe uygun renk paletini uygula.
+    st.markdown(custom_css, unsafe_allow_html=True)

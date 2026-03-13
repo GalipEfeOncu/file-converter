@@ -1,19 +1,27 @@
-# =============================================================================
-# main.py — Streamlit Uygulama Giriş Noktası & Durum Yönetimi
-# =============================================================================
-#
-# SORUMLULUK: Mimar (Galip Efe Öncü)
-#
-# Bu dosya uygulamanın kalbidir. Görevleri:
-#
-#   1. Streamlit sayfa konfigürasyonunu (st.set_page_config) kurmak.
-#   2. session_state üzerinden global uygulama durumunu (seçili dosya, aktif mod, seçili dil vb.) başlatmak ve yönetmek.
-#   3. ui/dashboard.py'den sayfa düzenini, ui/styles.py'den CSS enjeksiyonunu import ederek uygulamak.
-#   4. Kullanıcının seçtiği moda göre (Dönüştür / Görüntüle / AI Analiz) core/ modüllerini (converter, viewer, ai_engine, player) çağırmak.
-#   5. Sidebar'da dosya yükleme (st.file_uploader / sürükle-bırak), mod seçimi ve dil seçeneği sunmak.
-#   6. config/settings.py'den uygulama geneli sabitleri okumak.
-#
-# KULLANIM:
-#   streamlit run main.py
-#
-# =============================================================================
+"""
+main.py — Uygulama Giriş Noktası ve Ana Kontrol Merkezi
+Sahibi: Galip Efe Öncü (Proje Mimarı)
+
+Senin Görevin:
+Uygulamanın ana iskeletini oluşturmak, sayfa yapılandırmasını kurmak ve diğer ekip üyelerinin yazdığı modülleri (converter, viewer, ai_engine vb.) sistemle entegre etmek.
+
+Çıktı: "Tüm modülleri bir araya getiren, kullanıcı dostu ve işlevsel bir Streamlit arayüzü."
+"""
+
+import streamlit as st
+# Diğer modüller eklenecek (Örn: from core.converter import Converter)
+
+def main():
+    # 1. Sayfa Konfigürasyonu
+    st.set_page_config(page_title="Universal File Workstation", layout="wide")
+    
+    # 2. Ana Başlık
+    st.title("🗂️ Universal File Workstation")
+    
+    # TODO: Galip Efe Öncü — Sidebar ve modül sekmelerini (Tabs) oluştur.
+    # TODO: Galip Efe Öncü — session_state üzerinden global değişkenleri (dil, yüklü dosya vb.) yönet.
+    
+    st.info("Proje mimarisi kuruluyor. Modüller yüklendiğinde burası ana çalışma alanına dönüşecek.")
+
+if __name__ == "__main__":
+    main()

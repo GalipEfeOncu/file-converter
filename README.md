@@ -30,7 +30,7 @@ Built by a team of five engineers, this project targets students, professionals,
 | 🎵 **Media Playback** | Play MP3, MP4, OGG, and WAV files |
 | 🤖 **AI Analysis** | Summarize documents and answer questions via OpenAI / Gemini API |
 | 🌐 **Internationalization** | Full Turkish & English UI support |
-| 🎨 **Theming** | Özel CSS enjeksiyonu ile Dark mode, modern Streamlit arayüzü |
+| 🎨 **Theming** | Dark mode with custom CSS injection, modern Streamlit interface |
 
 ---
 
@@ -115,30 +115,30 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 > ⚠️ **Never commit your `.env` file.** It is already listed in `.gitignore`.
 
-### 5. Uygulamayı Başlat
+### 5. Launch the Application
 
 ```bash
 streamlit run main.py
 ```
 
-> Tarayıcınızda otomatik olarak `http://localhost:8501` açılacaktır.
+> Your browser will automatically open at `http://localhost:8501`.
 
 ---
 
 ## 📦 Dependencies
 
-| Paket | Amaç |
+| Package | Purpose |
 |---|---|
-| `streamlit` | Web tabanlı uygulama arayüzü |
-| `Pillow` | Resim işleme (PNG, JPG, WEBP) |
-| `pandas` | CSV ve Excel veri işleme |
-| `openpyxl` | `.xlsx` dosyası yazma |
-| `python-docx` | Word dosyası okuma/yazma |
-| `PyPDF2` | PDF metin çıkarma |
-| `PyMuPDF` | Yüksek kaliteli PDF → resim render |
-| `pydub` | Ses format dönüştürme (ffmpeg gerektirir) |
-| `openai` | Yapay zeka özetleme ve soru-cevap |
-| `python-dotenv` | `.env` ile güvenli API anahtarı yönetimi |
+| `streamlit` | Web-based application interface |
+| `Pillow` | Image processing (PNG, JPG, WEBP) |
+| `pandas` | CSV and Excel data processing |
+| `openpyxl` | Excel (`.xlsx`) file writing |
+| `python-docx` | Word file reading/writing |
+| `PyPDF2` | PDF text extraction |
+| `PyMuPDF` | High-quality PDF → image rendering |
+| `pydub` | Audio format conversion (requires ffmpeg) |
+| `openai` | AI summarization and Q&A |
+| `python-dotenv` | Secure API key management via `.env` |
 
 ---
 
