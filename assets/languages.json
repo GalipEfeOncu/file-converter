@@ -1,32 +1,44 @@
 {
     "_metadata": {
-        "module": "assets/languages.json — Uygulama İçi Metinler ve Dil Desteği (i18n)",
-        "responsibility": "Kalite Güvence & Test Uzmanı (QA)",
-        "description": "Uygulamanın Türkçe ve İngilizce dil çevirilerini tutar.",
+        "module": "assets/languages.json — i18n (Internationalization)",
+        "project": "Universal File Workstation",
+        "description": "Uygulama genelindeki tüm metinlerin Türkçe ve İngilizce karşılıklarını tutar.",
+        "usage_note": "Buradaki anahtarlar 'main.py' içindeki 'texts' sözlüğü üzerinden çağrılır.",
         "rules": [
-            "1. JSON formatında normal yorum (// veya #) kullanılamayacağı için _metadata altında yazılmıştır.",
-            "2. Yeni bir metin ekleneceği zaman, anahtarın (key) DİL BAŞLIKLARI (örn. 'tr' ve 'en') altına aynı isimle eklenmesi ZORUNLUDUR.",
-            "3. Eklenen metin id'leri snake_case string (örn: error_file_not_found) formatında olmalıdır.",
-            "4. JSON formatını bozmamak için virgül (,) kullanımına dikkat ediniz."
+            "1. YENİ EKLENEN ANAHTAR: Mutlaka hem 'tr' hem de 'en' altına AYNI isimle eklenmelidir.",
+            "2. FORMAT: Anahtar isimleri snake_case (orn: hata_mesaji) olmalıdır.",
+            "3. BÖLÜMLER: Görsel düzen için '__SECTION_ADI__' formatındaki anahtarlar kullanılmıştır. Bunlar kodda kullanılmaz."
         ]
     },
     "tr": {
+        "__UI_HEADER__": "---------- GENEL ARAYÜZ ----------",
         "app_title": "Modern Dosya Dönüştürücü",
+        "__NAV_SECTION__": "---------- NAVİGASYON ----------",
         "sidebar_title": "Navigasyon",
+        "home_tab": "Ana Sayfa",
+        "convert_tab": "Dönüştür",
+        "view_tab": "Görüntüle",
+        "ai_tab": "AI Analizi",
+        "__FILE_SECTION__": "---------- DOSYA İŞLEMLERİ ----------",
         "upload_file": "Dosyalarınızı buraya sürükleyin veya seçin",
-        "convert_tab": "🔄 Dönüştür",
-        "view_tab": "👁️ Görüntüle",
-        "ai_tab": "🧠 AI Analizi",
+        "file_uploaded": "Dosya Yüklendi",
+        "__MSG_SECTION__": "---------- MESAJLAR & HATALAR ----------",
         "error_unsupported_file": "Desteklenmeyen dosya türü. Lütfen geçerli bir dosya yükleyin.",
         "success_conversion": "Dosya başarıyla dönüştürüldü!"
     },
     "en": {
+        "__UI_HEADER__": "---------- GENERAL UI ----------",
         "app_title": "Modern File Converter",
+        "__NAV_SECTION__": "---------- NAVIGATION ----------",
         "sidebar_title": "Navigation",
+        "home_tab": "Home",
+        "convert_tab": "Convert",
+        "view_tab": "View",
+        "ai_tab": "AI Analysis",
+        "__FILE_SECTION__": "---------- FILE OPERATIONS ----------",
         "upload_file": "Drag and drop your files here or browse",
-        "convert_tab": "🔄 Convert",
-        "view_tab": "👁️ View",
-        "ai_tab": "🧠 AI Analysis",
+        "file_uploaded": "File Uploaded",
+        "__MSG_SECTION__": "---------- MESSAGES & ERRORS ----------",
         "error_unsupported_file": "Unsupported file type. Please upload a valid file.",
         "success_conversion": "File successfully converted!"
     }
