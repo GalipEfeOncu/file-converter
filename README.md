@@ -59,13 +59,18 @@ file-converter/
 │   ├── icons/               # Uygulama ikonları
 │   └── audio/               # Ses varlıkları
 │
+├── docs/                    # Proje dökümantasyonu
+│   ├── PROJECT_DETAILS.md   # Proje detayları
+│   ├── ROADMAP.md           # Yol haritası
+│   └── TASK_DISTRIBUTION.md # Görev dağılımı
+│
 ├── tests/
 │   ├── test_converter.py    # Dönüştürme birim testleri
 │   └── test_ai.py           # AI modül testleri
 │
 ├── requirements.txt         # Python bağımlılıkları
-├── TASK_DISTRIBUTION.md     # Ekip görev dağılımı & modül sahipliği
 └── LICENSE
+
 ```
 
 ---
@@ -144,7 +149,7 @@ streamlit run main.py
 
 ## 👥 Team & Roles
 
-This project is developed collaboratively. Each engineer owns a specific domain. See [`TASK_DISTRIBUTION.md`](TASK_DISTRIBUTION.md) for the full breakdown.
+This project is developed collaboratively. Each engineer owns a specific domain. See [`docs/TASK_DISTRIBUTION.md`](docs/TASK_DISTRIBUTION.md) for the full breakdown.
 
 | Role | Module(s) |
 |---|---|
@@ -200,7 +205,7 @@ class Config:
 4. Push to the branch: `git push origin feature/your-feature-name`
 5. Open a Pull Request
 
-Please follow the module ownership guidelines in [`TASK_DISTRIBUTION.md`](TASK_DISTRIBUTION.md) when making changes.
+Please follow the module ownership guidelines in [`docs/TASK_DISTRIBUTION.md`](docs/TASK_DISTRIBUTION.md) when making changes.
 
 ---
 
