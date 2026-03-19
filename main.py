@@ -11,6 +11,7 @@ Uygulamanın ana iskeletini oluşturmak, sayfa yapılandırmasını kurmak ve di
 import streamlit as st
 import json
 from config.settings import Config
+from ui.styles import apply_custom_css
 
 
 def load_languages():
@@ -45,6 +46,7 @@ def init_state():
 def main():
     # Sayfayı Konfigüre eder. Sayfa başlığı ve genişliği
     st.set_page_config(page_title=Config.APP_NAME, layout="wide")
+    apply_custom_css()  # Tasarım sistemi ve özel renk/tipografi kurulumunu uygula
 
     init_state()  # Hafıza kontrolü yapar. Eğer hafızada bir şey yoksa oluşturur
 
