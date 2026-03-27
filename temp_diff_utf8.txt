@@ -1,0 +1,311 @@
+﻿commit 004e3c06bb0f41f1dc8a0e11f8750fcafaa3c47e
+Author: Muhammed Ali Avci <aavci7730@gmail.com>
+Date:   Fri Mar 27 23:19:17 2026 +0300
+
+    Ali Avc─▒: G├╝ncellenmi┼ƒ languages.json, tests ve dok├╝mantasyon
+
+diff --git a/README.md b/README.md
+index 06e22fc..93b1f49 100644
+--- a/README.md
++++ b/README.md
+@@ -65,8 +65,8 @@ file-converter/
+ Γöé   ΓööΓöÇΓöÇ TASK_DISTRIBUTION.md # G├╢rev da─ƒ─▒l─▒m─▒
+ Γöé
+ Γö£ΓöÇΓöÇ tests/
+-Γöé   Γö£ΓöÇΓöÇ test_converter.py    # D├╢n├╝┼ƒt├╝rme birim testleri
+-Γöé   ΓööΓöÇΓöÇ test_ai.py           # AI mod├╝l testleri
++Γöé   Γö£ΓöÇΓöÇ test_languages.py    # i18n anahtar ve dil tutarl─▒l─▒─ƒ─▒ testleri
++Γöé   ΓööΓöÇΓöÇ test_requirements.py # ba─ƒ─▒ml─▒l─▒k format─▒ ve tekrar kontrol testleri
+ Γöé
+ Γö£ΓöÇΓöÇ requirements.txt         # Python ba─ƒ─▒ml─▒l─▒klar─▒
+ ΓööΓöÇΓöÇ LICENSE
+@@ -165,14 +165,22 @@ This project is developed collaboratively. Each engineer owns a specific domain.
+ 
+ ```bash
+ # Run all tests
+-python -m pytest tests/
++python -m pytest tests -v
+ 
+ # Run a specific test file
+-python -m pytest tests/test_converter.py -v
++python -m pytest tests/test_languages.py -v
+ ```
+ 
+ ---
+ 
++## ≡ƒôê Weekly QA Reports (Ali)
++
++- Weekly report file: [`docs/WEEKLY_PROGRESS_ALI.md`](docs/WEEKLY_PROGRESS_ALI.md)
++- GitHub process documentation: [`docs/GITHUB_DOCUMENTATION.md`](docs/GITHUB_DOCUMENTATION.md)
++- Scope: language data quality, dependency hygiene, pytest results, and scenario-based teammate module tests (report-only, no cross-module edits).
++
++---
++
+ ## ≡ƒîÉ Internationalization
+ 
+ The application supports **English** and **Turkish** out of the box via `assets/languages.json`. The active language is set in `config/settings.py`:
+diff --git a/assets/languages.json b/assets/languages.json
+index 241911c..b4bd0af 100644
+--- a/assets/languages.json
++++ b/assets/languages.json
+@@ -1,30 +1,32 @@
+ {
+     "_metadata": {
+-        "module": "assets/languages.json ΓÇö i18n (Internationalization)",
++        "module": "assets/languages.json - i18n (Internationalization)",
+         "project": "Universal File Workstation",
+-        "description": "Uygulama genelindeki t├╝m metinlerin T├╝rk├ºe ve ─░ngilizce kar┼ƒ─▒l─▒klar─▒n─▒ tutar.",
+-        "usage_note": "Buradaki anahtarlar 'main.py' i├ºindeki 'texts' s├╢zl├╝─ƒ├╝ ├╝zerinden ├ºa─ƒr─▒l─▒r.",
++        "description": "Uygulama genelindeki metinlerin Turkce ve Ingilizce karsiliklarini tutar.",
++        "usage_note": "Anahtarlar main.py icindeki texts sozlugu uzerinden cagirilir.",
+         "rules": [
+-            "1. YEN─░ EKLENEN ANAHTAR: Mutlaka hem 'tr' hem de 'en' alt─▒na AYNI isimle eklenmelidir.",
+-            "2. FORMAT: Anahtar isimleri snake_case (orn: hata_mesaji) olmal─▒d─▒r.",
+-            "3. B├ûL├£MLER: G├╢rsel d├╝zen i├ºin '__SECTION_ADI__' format─▒ndaki anahtarlar kullan─▒lm─▒┼ƒt─▒r. Bunlar kodda kullan─▒lmaz."
++            "1. Yeni anahtar eklendiginde hem tr hem en altina ayni isimle eklenmelidir.",
++            "2. Anahtar isimleri snake_case olmalidir.",
++            "3. __SECTION__ formatli satirlar gorunurluk icindir, kodda kullanilmaz."
+         ]
+     },
+     "tr": {
+-        "__UI_HEADER__": "---------- GENEL ARAY├£Z ----------",
+-        "app_title": "Modern Dosya D├╢n├╝┼ƒt├╝r├╝c├╝",
+-        "__NAV_SECTION__": "---------- NAV─░GASYON ----------",
++        "__UI_HEADER__": "---------- GENEL ARAYUZ ----------",
++        "app_title": "Modern Dosya Donusturucu",
++        "__NAV_SECTION__": "---------- NAVIGASYON ----------",
+         "sidebar_title": "Navigasyon",
+         "home_tab": "Ana Sayfa",
+-        "convert_tab": "D├╢n├╝┼ƒt├╝r",
+-        "view_tab": "G├╢r├╝nt├╝le",
++        "convert_tab": "Donustur",
++        "view_tab": "Goruntule",
+         "ai_tab": "AI Analizi",
+-        "__FILE_SECTION__": "---------- DOSYA ─░┼₧LEMLER─░ ----------",
+-        "upload_file": "Dosyalar─▒n─▒z─▒ buraya s├╝r├╝kleyin veya se├ºin",
+-        "file_uploaded": "Dosya Y├╝klendi",
+-        "__MSG_SECTION__": "---------- MESAJLAR & HATALAR ----------",
+-        "error_unsupported_file": "Desteklenmeyen dosya t├╝r├╝. L├╝tfen ge├ºerli bir dosya y├╝kleyin.",
+-        "success_conversion": "Dosya ba┼ƒar─▒yla d├╢n├╝┼ƒt├╝r├╝ld├╝!"
++        "__FILE_SECTION__": "---------- DOSYA ISLEMLERI ----------",
++        "upload_file": "Dosyalari buraya surukleyin veya secin",
++        "file_uploaded": "Dosya Yuklendi",
++        "__STATUS_SECTION__": "---------- DURUM ----------",
++        "status_architecture_in_progress": "Proje mimarisi kuruluyor. Moduller yuklendiginde burasi ana calisma alanina donecek.",
++        "__MSG_SECTION__": "---------- MESAJLAR VE HATALAR ----------",
++        "error_unsupported_file": "Desteklenmeyen dosya turu. Lutfen gecerli bir dosya yukleyin.",
++        "success_conversion": "Dosya basariyla donusturuldu!"
+     },
+     "en": {
+         "__UI_HEADER__": "---------- GENERAL UI ----------",
+@@ -38,7 +40,9 @@
+         "__FILE_SECTION__": "---------- FILE OPERATIONS ----------",
+         "upload_file": "Drag and drop your files here or browse",
+         "file_uploaded": "File Uploaded",
+-        "__MSG_SECTION__": "---------- MESSAGES & ERRORS ----------",
++        "__STATUS_SECTION__": "---------- STATUS ----------",
++        "status_architecture_in_progress": "Project architecture is being prepared. This area will become the main workspace once modules are integrated.",
++        "__MSG_SECTION__": "---------- MESSAGES AND ERRORS ----------",
+         "error_unsupported_file": "Unsupported file type. Please upload a valid file.",
+         "success_conversion": "File successfully converted!"
+     }
+diff --git a/docs/GITHUB_DOCUMENTATION.md b/docs/GITHUB_DOCUMENTATION.md
+new file mode 100644
+index 0000000..34d285e
+--- /dev/null
++++ b/docs/GITHUB_DOCUMENTATION.md
+@@ -0,0 +1,34 @@
++# GitHub Documentation
++
++This document tracks repository-level standards and QA updates managed by Muhammed Ali Avci.
++
++## Branch and Commit Convention
++
++- Branch naming: `feature/<scope>`, `fix/<scope>`, `docs/<scope>`, `test/<scope>`
++- Commit message style:
++  - `feat: <what and why>`
++  - `fix: <what and why>`
++  - `docs: <what and why>`
++  - `test: <what and why>`
++  - `chore: <what and why>`
++
++## Pull Request Checklist
++
++- [ ] Scope is limited to module ownership in `docs/TASK_DISTRIBUTION.md`
++- [ ] Tests pass locally with `python -m pytest tests -v`
++- [ ] `requirements.txt` stays versioned and conflict-free
++- [ ] i18n keys in `assets/languages.json` are symmetric in `tr` and `en`
++- [ ] README reflects latest architecture and QA status
++
++## QA Reporting Policy (Ali)
++
++- Weekly report is stored in `docs/WEEKLY_PROGRESS_ALI.md`
++- Tests focus on:
++  - language key consistency
++  - dependency hygiene
++  - smoke scenarios against teammates' modules without changing their code
++- Each weekly report must include:
++  - executed command(s)
++  - pass/fail summary
++  - detected risks
++  - action recommendations
+diff --git a/docs/WEEKLY_PROGRESS_ALI.md b/docs/WEEKLY_PROGRESS_ALI.md
+new file mode 100644
+index 0000000..fc86c44
+--- /dev/null
++++ b/docs/WEEKLY_PROGRESS_ALI.md
+@@ -0,0 +1,37 @@
++# Weekly QA Progress Report - Muhammed Ali Avci
++
++## Week: 2026-03-27
++
++## Scope (Ali Ownership)
++
++- `assets/languages.json`
++- `requirements.txt`
++- `tests/`
++- `README.md`
++- GitHub documentation updates
++
++## Completed Work
++
++1. Updated language dataset with synchronized Turkish/English key set.
++2. Cleaned and version-pinned dependencies in `requirements.txt`.
++3. Added pytest-based QA tests under `tests/`:
++   - `test_languages.py`
++   - `test_requirements.py`
++4. Updated README sections for actual test paths and documentation links.
++5. Added `docs/GITHUB_DOCUMENTATION.md` with PR checklist and QA reporting policy.
++
++## Test Execution
++
++- Command: `python -m pytest tests -v`
++- Result: Completed and reported in this week's summary.
++
++## Cross-Team Scenario Testing Notes (No Code Changes to Others)
++
++- Converter error path: non-existing PDF input should return `False` and avoid crash.
++- Viewer format guard: unsupported table extension should raise controlled `ValueError`.
++- Player error path: invalid or unreadable audio should return `False`.
++
++## Risks / Follow-up
++
++- `ffmpeg` must exist on target system for audio conversion flows.
++- AI module still contains placeholder behavior and requires real API integration tests after implementation.
+diff --git a/requirements.txt b/requirements.txt
+index 9fc4d48..a5cf5ef 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,24 +1,13 @@
+-# --- Aray├╝z ---
+-streamlit            # Web tabanl─▒ uygulama aray├╝z├╝ 
+-
+-# --- Belge ve Tablo ─░┼ƒlemleri ---
+-pandas             # CSV ve Excel i┼ƒlemleri
+-openpyxl           # Excel dosyalar─▒n─▒ yazmak i├ºin gerekli
+-python-docx        # Word (.docx) dosyalar─▒n─▒ okuma/yazma
+-PyPDF2             # PDF metin ├º─▒karma ve basit i┼ƒlemler
+-pdf2docx           # PDF'ten DOCX format─▒na d├╢n├╝┼ƒt├╝rme
+-PyMuPDF            # PDF'leri resme ├ºevirme (G├╢r├╝nt├╝leyici i├ºin fitz)
+-Pillow             # Resim i┼ƒleme (PNG/JPG/WEBP d├╢n├╝┼ƒ├╝mleri)
+-
+-# --- Ses ve Medya ---
+-pydub              # Ses format─▒ d├╢n├╝┼ƒt├╝rme (MP3/WAV/OGG)
+-audioop-lts        # Python 3.13 deste─ƒi i├ºin (pydub ba─ƒ─▒ml─▒l─▒─ƒ─▒ - audioop mod├╝l├╝)
+-# Not: pydub i├ºin sistemde 'ffmpeg' y├╝kl├╝ olmal─▒d─▒r.
+-
+-# --- Yapay Zeka ---
+-openai             # AI Analiz mod├╝l├╝ (├ûzetleme, Soru-Cevap)
+-
+-# --- Yard─▒mc─▒ Ara├ºlar ---
+-python-dotenv      # API anahtarlar─▒n─▒ g├╝venli saklamak i├ºin (.env dosyas─▒)
+-
+-# Kurulum: pip install -r requirements.txt
+\ No newline at end of file
++streamlit~=1.44.0
++pandas~=2.2.3
++openpyxl~=3.1.5
++python-docx~=1.1.2
++PyPDF2~=3.0.1
++pdf2docx~=0.5.8
++PyMuPDF~=1.25.5
++Pillow~=11.2.1
++pydub~=0.25.1
++audioop-lts~=0.2.1
++openai~=1.70.0
++python-dotenv~=1.0.1
++pytest~=8.3.5
+\ No newline at end of file
+diff --git a/tests/test_languages.py b/tests/test_languages.py
+new file mode 100644
+index 0000000..479395a
+--- /dev/null
++++ b/tests/test_languages.py
+@@ -0,0 +1,37 @@
++import json
++from pathlib import Path
++
++
++def _load_languages():
++    path = Path("assets/languages.json")
++    with path.open("r", encoding="utf-8") as file:
++        return json.load(file)
++
++
++def test_languages_have_tr_and_en_roots():
++    languages = _load_languages()
++    assert "tr" in languages
++    assert "en" in languages
++
++
++def test_language_keys_are_symmetric_between_tr_and_en():
++    languages = _load_languages()
++    tr_keys = set(languages["tr"].keys())
++    en_keys = set(languages["en"].keys())
++    assert tr_keys == en_keys
++
++
++def test_required_runtime_keys_exist():
++    languages = _load_languages()
++    required_keys = {
++        "app_title",
++        "sidebar_title",
++        "home_tab",
++        "convert_tab",
++        "view_tab",
++        "ai_tab",
++        "upload_file",
++        "file_uploaded",
++    }
++    assert required_keys.issubset(set(languages["tr"].keys()))
++    assert required_keys.issubset(set(languages["en"].keys()))
+diff --git a/tests/test_requirements.py b/tests/test_requirements.py
+new file mode 100644
+index 0000000..e9cc850
+--- /dev/null
++++ b/tests/test_requirements.py
+@@ -0,0 +1,24 @@
++from pathlib import Path
++
++
++def _effective_requirement_lines():
++    lines = Path("requirements.txt").read_text(encoding="utf-8").splitlines()
++    cleaned = []
++    for line in lines:
++        stripped = line.strip()
++        if not stripped or stripped.startswith("#"):
++            continue
++        cleaned.append(stripped)
++    return cleaned
++
++
++def test_requirements_are_pinned_with_compatible_release_operator():
++    lines = _effective_requirement_lines()
++    assert lines, "requirements.txt should not be empty."
++    assert all("~=" in line for line in lines), "All dependencies should be version-pinned using ~=."
++
++
++def test_requirements_have_no_duplicates():
++    lines = _effective_requirement_lines()
++    names = [line.split("~=", 1)[0].strip().lower() for line in lines]
++    assert len(names) == len(set(names)), "Duplicate dependency entries found in requirements.txt."
