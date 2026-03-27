@@ -60,8 +60,8 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** Çoklu dil desteğinin testleri ve uygulamanın sistem test otomasyonunu (pytest) yapılandırmak.
 *   **Görevler:**
     - [x] `assets/languages.json` dosyasını hem Türkçe hem İngilizce olacak şekilde tanımla.
-    - [ ] Uygulama içindeki metinlerin dinamik olarak bu dosyadan çekilmesi süreçlerini test et.
-    - [ ] `pytest` çalışma ortamını yapılandır.
+    - [x] Uygulama içindeki metinlerin dinamik olarak bu dosyadan çekilmesi süreçlerini test et.
+    - [x] `pytest` çalışma ortamını yapılandır.
     - [ ] Temel modüllerin import testlerini ve `main.py` çalışabilirliğini doğrulayan Smoke Test senaryolarını yaz.
 
 ---
@@ -107,7 +107,7 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Sorumlu:** **Muhammed Ali Avcı**
 *   **Özet:** Yeni dönüştürücüler için gelişmiş testler ve projenin resmi sistem testinin başlatılması.
 *   **Görevler:**
-    - [ ] `pytest.ini` ve test konfigürasyonlarını kurarak resmi test altyapısına geçiş yap.
+    - [x] `pytest.ini` ve test konfigürasyonlarını kurarak resmi test altyapısına geçiş yap.
     - [ ] DOCX -> PDF ve Görsel (JPG/PNG/WEBP) dönüştürme modülleri için birim (unit) testleri yaz.
-    - [ ] İngilizce/Türkçe string hatalarını veya çevirisi unutulan kelimeleri `languages.json` dosyasına ekle.
-    - [ ] Uygulamanın büyük dosyalarda (>50MB) çöküp çökmediğini görmek için manuel duman testleri (smoke test) yürüt.
+    - [x] İngilizce/Türkçe string hatalarını veya çevirisi unutulan kelimeleri `languages.json` dosyasına ekle.
+    - [x] Uygulamanın büyük dosyalarda (>50MB) çöküp çökmediğini görmek için manuel duman testleri (smoke test) yürüt.
