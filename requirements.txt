@@ -6,11 +6,13 @@ pandas             # CSV ve Excel işlemleri
 openpyxl           # Excel dosyalarını yazmak için gerekli
 python-docx        # Word (.docx) dosyalarını okuma/yazma
 PyPDF2             # PDF metin çıkarma ve basit işlemler
+pdf2docx           # PDF'ten DOCX formatına dönüştürme
 PyMuPDF            # PDF'leri resme çevirme (Görüntüleyici için fitz)
 Pillow             # Resim işleme (PNG/JPG/WEBP dönüşümleri)
 
 # --- Ses ve Medya ---
 pydub              # Ses formatı dönüştürme (MP3/WAV/OGG)
+audioop-lts        # Python 3.13 desteği için (pydub bağımlılığı - audioop modülü)
 # Not: pydub için sistemde 'ffmpeg' yüklü olmalıdır.
 
 # --- Yapay Zeka ---
