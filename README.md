@@ -65,8 +65,8 @@ file-converter/
 │   └── TASK_DISTRIBUTION.md # Görev dağılımı
 │
 ├── tests/
-│   ├── test_converter.py    # Dönüştürme birim testleri
-│   └── test_ai.py           # AI modül testleri
+│   ├── test_languages.py    # i18n anahtar ve dil tutarlılığı testleri
+│   └── test_requirements.py # bağımlılık formatı ve tekrar kontrol testleri
 │
 ├── requirements.txt         # Python bağımlılıkları
 └── LICENSE
@@ -165,11 +165,19 @@ This project is developed collaboratively. Each engineer owns a specific domain.
 
 ```bash
 # Run all tests
-python -m pytest tests/
+python -m pytest tests -v
 
 # Run a specific test file
-python -m pytest tests/test_converter.py -v
+python -m pytest tests/test_languages.py -v
 ```
+
+---
+
+## 📈 Weekly QA Reports (Ali)
+
+- Weekly report file: [`docs/WEEKLY_PROGRESS_ALI.md`](docs/WEEKLY_PROGRESS_ALI.md)
+- GitHub process documentation: [`docs/GITHUB_DOCUMENTATION.md`](docs/GITHUB_DOCUMENTATION.md)
+- Scope: language data quality, dependency hygiene, pytest results, and scenario-based teammate module tests (report-only, no cross-module edits).
 
 ---
 

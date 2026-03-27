@@ -1,24 +1,13 @@
-# --- Arayüz ---
-streamlit            # Web tabanlı uygulama arayüzü 
-
-# --- Belge ve Tablo İşlemleri ---
-pandas             # CSV ve Excel işlemleri
-openpyxl           # Excel dosyalarını yazmak için gerekli
-python-docx        # Word (.docx) dosyalarını okuma/yazma
-PyPDF2             # PDF metin çıkarma ve basit işlemler
-pdf2docx           # PDF'ten DOCX formatına dönüştürme
-PyMuPDF            # PDF'leri resme çevirme (Görüntüleyici için fitz)
-Pillow             # Resim işleme (PNG/JPG/WEBP dönüşümleri)
-
-# --- Ses ve Medya ---
-pydub              # Ses formatı dönüştürme (MP3/WAV/OGG)
-audioop-lts        # Python 3.13 desteği için (pydub bağımlılığı - audioop modülü)
-# Not: pydub için sistemde 'ffmpeg' yüklü olmalıdır.
-
-# --- Yapay Zeka ---
-openai             # AI Analiz modülü (Özetleme, Soru-Cevap)
-
-# --- Yardımcı Araçlar ---
-python-dotenv      # API anahtarlarını güvenli saklamak için (.env dosyası)
-
-# Kurulum: pip install -r requirements.txt
+streamlit~=1.44.0
+pandas~=2.2.3
+openpyxl~=3.1.5
+python-docx~=1.1.2
+PyPDF2~=3.0.1
+pdf2docx~=0.5.8
+PyMuPDF~=1.25.5
+Pillow~=11.2.1
+pydub~=0.25.1
+audioop-lts~=0.2.1
+openai~=1.70.0
+python-dotenv~=1.0.1
+pytest~=8.3.5

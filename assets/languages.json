@@ -1,30 +1,32 @@
 {
     "_metadata": {
-        "module": "assets/languages.json — i18n (Internationalization)",
+        "module": "assets/languages.json - i18n (Internationalization)",
         "project": "Universal File Workstation",
-        "description": "Uygulama genelindeki tüm metinlerin Türkçe ve İngilizce karşılıklarını tutar.",
-        "usage_note": "Buradaki anahtarlar 'main.py' içindeki 'texts' sözlüğü üzerinden çağrılır.",
+        "description": "Uygulama genelindeki metinlerin Turkce ve Ingilizce karsiliklarini tutar.",
+        "usage_note": "Anahtarlar main.py icindeki texts sozlugu uzerinden cagirilir.",
         "rules": [
-            "1. YENİ EKLENEN ANAHTAR: Mutlaka hem 'tr' hem de 'en' altına AYNI isimle eklenmelidir.",
-            "2. FORMAT: Anahtar isimleri snake_case (orn: hata_mesaji) olmalıdır.",
-            "3. BÖLÜMLER: Görsel düzen için '__SECTION_ADI__' formatındaki anahtarlar kullanılmıştır. Bunlar kodda kullanılmaz."
+            "1. Yeni anahtar eklendiginde hem tr hem en altina ayni isimle eklenmelidir.",
+            "2. Anahtar isimleri snake_case olmalidir.",
+            "3. __SECTION__ formatli satirlar gorunurluk icindir, kodda kullanilmaz."
         ]
     },
     "tr": {
-        "__UI_HEADER__": "---------- GENEL ARAYÜZ ----------",
-        "app_title": "Modern Dosya Dönüştürücü",
-        "__NAV_SECTION__": "---------- NAVİGASYON ----------",
+        "__UI_HEADER__": "---------- GENEL ARAYUZ ----------",
+        "app_title": "Modern Dosya Donusturucu",
+        "__NAV_SECTION__": "---------- NAVIGASYON ----------",
         "sidebar_title": "Navigasyon",
         "home_tab": "Ana Sayfa",
-        "convert_tab": "Dönüştür",
-        "view_tab": "Görüntüle",
+        "convert_tab": "Donustur",
+        "view_tab": "Goruntule",
         "ai_tab": "AI Analizi",
-        "__FILE_SECTION__": "---------- DOSYA İŞLEMLERİ ----------",
-        "upload_file": "Dosyalarınızı buraya sürükleyin veya seçin",
-        "file_uploaded": "Dosya Yüklendi",
-        "__MSG_SECTION__": "---------- MESAJLAR & HATALAR ----------",
-        "error_unsupported_file": "Desteklenmeyen dosya türü. Lütfen geçerli bir dosya yükleyin.",
-        "success_conversion": "Dosya başarıyla dönüştürüldü!"
+        "__FILE_SECTION__": "---------- DOSYA ISLEMLERI ----------",
+        "upload_file": "Dosyalari buraya surukleyin veya secin",
+        "file_uploaded": "Dosya Yuklendi",
+        "__STATUS_SECTION__": "---------- DURUM ----------",
+        "status_architecture_in_progress": "Proje mimarisi kuruluyor. Moduller yuklendiginde burasi ana calisma alanina donecek.",
+        "__MSG_SECTION__": "---------- MESAJLAR VE HATALAR ----------",
+        "error_unsupported_file": "Desteklenmeyen dosya turu. Lutfen gecerli bir dosya yukleyin.",
+        "success_conversion": "Dosya basariyla donusturuldu!"
     },
     "en": {
         "__UI_HEADER__": "---------- GENERAL UI ----------",
@@ -38,7 +40,9 @@
         "__FILE_SECTION__": "---------- FILE OPERATIONS ----------",
         "upload_file": "Drag and drop your files here or browse",
         "file_uploaded": "File Uploaded",
-        "__MSG_SECTION__": "---------- MESSAGES & ERRORS ----------",
+        "__STATUS_SECTION__": "---------- STATUS ----------",
+        "status_architecture_in_progress": "Project architecture is being prepared. This area will become the main workspace once modules are integrated.",
+        "__MSG_SECTION__": "---------- MESSAGES AND ERRORS ----------",
         "error_unsupported_file": "Unsupported file type. Please upload a valid file.",
         "success_conversion": "File successfully converted!"
     }
