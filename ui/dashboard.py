@@ -9,16 +9,206 @@ Streamlit'in tasarım bileşenlerini kullanarak modern, temiz ve kullanımı kol
 """
 
 import streamlit as st
+import json
+from datetime import datetime
+from config.settings import Config
 
 class Dashboard:
     """Uygulamanın genel sayfa düzenini kurgular."""
 
+    def __init__(self, texts):
+        """Dashboard'u başlat ve metin yapılandırmasını ayarla."""
+        self.texts = texts
+
     def render_sidebar(self):
-        """Uygulama yan menüsünü oluşturur."""
-        # TODO: Samet Demir — Logo, Dil seçimi ve Mod seçimi ekle.
-        pass
+        """
+        Geliştirmiş sidebar oluştur: Dil seçimi, Dosya Geçmişi ve navigasyon.
+        Samet Demir — Modern sidebar tasarımı, Dosya Geçmişi ve dil yönetimi.
+        """
+        with st.sidebar:
+            # --- Logo/Brand Alanı ---
+            col1, col2 = st.columns([0.3, 0.7])
+            with col1:
+                st.markdown("""
+                <div style="font-size: 28px; font-weight: 700; 
+                    background: linear-gradient(135deg, #0052CC, #00D6A7);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    margin-bottom: 10px;">
+                    ⚡
+                </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""
+                <div style="font-size: 18px; font-weight: 700; color: rgba(242, 247, 255, 0.95);">
+                    {Config.APP_NAME}
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.divider()
+
+            # --- Dil Seçimi ---
+            st.markdown("**🌐 Dil / Language**")
+            lang_display = {"tr": "Türkçe 🇹🇷", "en": "English 🇺🇸"}
+            current_index = 0 if st.session_state.language == "tr" else 1
+            selected_lang_name = st.selectbox(
+                "Dil seçin",
+                options=list(lang_display.values()),
+                index=current_index,
+                label_visibility="collapsed"
+            )
+
+            for key, value in lang_display.items():
+                if value == selected_lang_name:
+                    if st.session_state.language != key:
+                        st.session_state.language = key
+                        st.rerun()
+
+            st.divider()
+
+            # --- Navigasyon ---
+            st.markdown("**📊 Navigasyon**")
+            nav_options = [
+                self.texts.get("convert_tab", "Dönüştür"),
+                self.texts.get("view_tab", "Görüntüle"),
+                self.texts.get("ai_tab", "AI Analizi")
+            ]
+
+            if st.session_state.get("active_tab") not in nav_options:
+                st.session_state.active_tab = nav_options[0]
+
+            current_index = nav_options.index(st.session_state.active_tab)
+            selected_tab = st.radio(
+                "Sekme seçin",
+                nav_options,
+                index=current_index,
+                label_visibility="collapsed"
+            )
+
+            if selected_tab != st.session_state.active_tab:
+                st.session_state.active_tab = selected_tab
+
+            st.divider()
+
+            # --- Dosya Yükleme ---
+            st.markdown("**📁 Dosya Yükleme**")
+            supported = [ext.replace(".", "") for ext in Config.SUPPORTED_EXTENSIONS]
+            
+            uploaded_file = st.file_uploader(
+                self.texts.get("upload_file", "Dosya Seç"),
+                type=supported,
+                label_visibility="collapsed"
+            )
+
+            if uploaded_file:
+                st.session_state.uploaded_file = uploaded_file
+                # Dosya Geçmişine ekle
+                self._add_to_file_history(uploaded_file.name)
+                st.success(f"{self.texts.get('file_uploaded', 'Yüklendi')}: {uploaded_file.name}")
+
+            st.divider()
+
+            # --- Dosya Geçmişi ---
+            st.markdown("**⏱️ Dosya Geçmişi**")
+            if "file_history" not in st.session_state:
+                st.session_state.file_history = []
+
+            history = st.session_state.file_history
+            if history:
+                st.markdown(f"<div style='font-size: 12px; color: rgba(242, 247, 255, 0.6);'>"
+                            f"{len(history)} dosya</div>", unsafe_allow_html=True)
+                for idx, file_info in enumerate(reversed(history[-5:])):  # Son 5 dosyayı göster
+                    st.markdown(f"""
+                    <div style='
+                        padding: 8px 10px;
+                        margin: 4px 0;
+                        background: rgba(255, 255, 255, 0.04);
+                        border: 1px solid rgba(255, 255, 255, 0.08);
+                        border-radius: 8px;
+                        font-size: 11px;
+                        color: rgba(242, 247, 255, 0.7);
+                        cursor: pointer;
+                        transition: all 150ms ease;
+                    '>
+                    📄 {file_info['name']}<br>
+                    <span style='color: rgba(242, 247, 255, 0.5);'>{file_info['time']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.markdown("<div style='color: rgba(242, 247, 255, 0.4); font-size: 12px;'>"
+                           "Henüz dosya yüklenmedi</div>", unsafe_allow_html=True)
+
+            st.divider()
+
+            # --- Ayarlar ---
+            with st.expander("⚙️ Ayarlar"):
+                st.markdown("**Tema**")
+                st.selectbox("Tema seçin", ["Koyu", "Açık"], disabled=True, label_visibility="collapsed")
+                st.markdown("**Hakkında**")
+                st.markdown(f"v{Config.VERSION}")
+
+    def _add_to_file_history(self, filename):
+        """Dosya geçmişine yeni dosya ekle."""
+        if "file_history" not in st.session_state:
+            st.session_state.file_history = []
+        
+        file_info = {
+            "name": filename,
+            "time": datetime.now().strftime("%H:%M:%S"),
+            "date": datetime.now().strftime("%d.%m.%Y")
+        }
+        
+        # Aynı dosya zaten varsa, eski kaydını kaldır ve en üste ekle
+        st.session_state.file_history = [
+            f for f in st.session_state.file_history 
+            if f["name"] != filename
+        ]
+        st.session_state.file_history.append(file_info)
 
     def render_main_area(self):
-        """Ana içerik alanını ve sekmeleri kurgular."""
-        # TODO: Samet Demir — Tabs (Dönüştür, Görüntüle, AI) yerleşimi.
-        pass
+        """
+        Ana içerik alanını st.tabs ile kurgular.
+        Samet Demir — Modern tab sistemi (Dönüştür, Görüntüle, AI) entegrasyonu.
+        """
+        active_tab = st.session_state.get("active_tab", self.texts.get("home_tab", "Ana Sayfa"))
+        
+        # Sekmeleri oluştur
+        tab_names = [
+            self.texts.get("convert_tab", "Dönüştür"),
+            self.texts.get("view_tab", "Görüntüle"),
+            self.texts.get("ai_tab", "AI Analizi")
+        ]
+        
+        # Active tabnın indeksini bul
+        default_index = 0
+        try:
+            default_index = tab_names.index(active_tab)
+        except ValueError:
+            pass
+
+        tabs = st.tabs(tab_names)
+
+        with tabs[0]:  # Dönüştür
+            st.header(f"🔄 {tab_names[0]}")
+            if st.session_state.uploaded_file:
+                st.write(f"📄 **Seçili Dosya:** {st.session_state.uploaded_file.name}")
+                st.write("Dönüştürme modülü yükleniyor...")
+            else:
+                st.warning("Lütfen önce yan menüden bir dosya yükleyin.", icon="⚠️")
+
+        with tabs[1]:  # Görüntüle
+            st.header(f"👁️ {tab_names[1]}")
+            if st.session_state.uploaded_file:
+                st.write(f"📄 **Seçili Dosya:** {st.session_state.uploaded_file.name}")
+                st.write("Dosya görüntüleme modülü yükleniyor...")
+            else:
+                st.info("Lütfen önce yan menüden bir dosya yükleyin.", icon="ℹ️")
+
+        with tabs[2]:  # AI Analizi
+            st.header(f"🤖 {tab_names[2]}")
+            if st.session_state.uploaded_file:
+                st.write(f"📄 **Seçili Dosya:** {st.session_state.uploaded_file.name}")
+                st.write("AI analiz modülü yükleniyor...")
+            else:
+                st.info("Lütfen önce yan menüden bir dosya yükleyin.", icon="ℹ️")

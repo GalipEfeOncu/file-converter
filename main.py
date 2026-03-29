@@ -12,6 +12,7 @@ import streamlit as st
 import json
 from config.settings import Config
 from ui.styles import apply_custom_css
+from ui.dashboard import Dashboard
 
 
 def load_languages():
@@ -37,10 +38,13 @@ def init_state():
         st.session_state.language = "tr"
 
     if "active_tab" not in st.session_state:
-        st.session_state.active_tab = "home"
+        st.session_state.active_tab = "convert"
 
     if "uploaded_file" not in st.session_state:
         st.session_state.uploaded_file = None
+    
+    if "file_history" not in st.session_state:
+        st.session_state.file_history = []
 
 
 def main():
@@ -51,59 +55,15 @@ def main():
     init_state()  # Hafıza kontrolü yapar. Eğer hafızada bir şey yoksa oluşturur
 
     texts = load_languages()
-    with st.sidebar:
-        lang_display = {"tr": "Türkçe 🇹🇷", "en": "English 🇺🇸"}
-        current_index = 0 if st.session_state.language == "tr" else 1
-        selected_lang_name = st.selectbox("Dil / Language", options=list(lang_display.values()), index=current_index)
-
-        for key, value in lang_display.items():
-            if value == selected_lang_name:
-                if st.session_state.language != key:
-                    st.session_state.language = key
-                    st.rerun()
-
-    # Ana Başlık
-    st.title(texts["app_title"])
-
-    # Kullanıcıyı bilgilendiren mesaj
-    st.info("Proje mimarisi kuruluyor. Modüller yüklendiğinde burası ana çalışma alanına dönüşecek.")
-
-    # --- GECİCİ SIDEBAR ---
-    # Henüz Samet sidebarı yazmadığı için geçici olarak sidebar ekliyorum
-    with st.sidebar:
-        st.title(texts["sidebar_title"])
-        tab_options = [texts["home_tab"], texts["convert_tab"], texts["view_tab"], texts["ai_tab"]]
-
-        # Eğer hafızadaki tab seçeneklerde yoksa (ilk açılış veya dil değişimi), ilk tabı varsayılan yap.
-        if st.session_state.active_tab not in tab_options:
-            st.session_state.active_tab = texts["home_tab"]
-
-        # Bulunduğu tabın listedeki sırasını bul (st.radio'nun doğru yeri göstermesi için)
-        current_index = tab_options.index(st.session_state.active_tab)
-
-        st.radio(texts["sidebar_title"], tab_options, index=current_index, key="active_tab")
-
-        st.divider()
-        supported = [ext.replace(".", "") for ext in Config.SUPPORTED_EXTENSIONS]  # Dizi içindeki . işaretlerini kaldırır
-
-        file = st.file_uploader(texts["upload_file"], type=supported)  # Dosya yükleme paneli
-
-        if file:  # Eğer dosya yüklenmişse
-            st.session_state.uploaded_file = file  # Hafızaya atar
-            st.success(f"{texts['file_uploaded']}: {file.name}")
-
-    if st.session_state.active_tab == texts["home_tab"]:
-        st.header(texts["home_tab"])
-    elif st.session_state.active_tab == texts["convert_tab"]:
-        st.header(texts["convert_tab"])
-        st.write("Dönüştürme işlemleri burada yapılacak.")
-    elif st.session_state.active_tab == texts["view_tab"]:
-        st.header(texts["view_tab"])
-        st.write("Dosya görüntüleme işlemleri burada yapılacak.")
-    elif st.session_state.active_tab == texts["ai_tab"]:
-        st.header(texts["ai_tab"])
-        st.write("AI analiz işlemleri burada yapılacak.")
-    # --- GECİCİ SIDEBAR SONU ---
+    
+    # Dashboard'u başlat - Galip Efe ile eş zamanlı uzatma tasarımlarının entegrasyonu
+    dashboard = Dashboard(texts)
+    
+    # Sidebar'ı render et (Samet Demir - Modern sidebar with File History & Language Selection)
+    dashboard.render_sidebar()
+    
+    # Ana alanı render et (Samet Demir - st.tabs entegrasyonu)
+    dashboard.render_main_area()
 
 
 if __name__ == "__main__":

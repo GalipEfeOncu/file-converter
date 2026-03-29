@@ -129,6 +129,123 @@ def apply_custom_css():
             background: rgba(255, 255, 255, 0.35);
         }
 
+        /* --- Dosya Yükleyici (File Uploader) Tasarımı --- */
+        /* Sürükle-bırak kutusu stillemesi */
+        [data-testid="stFileUploadDropzone"] {
+            background: linear-gradient(135deg, rgba(5, 82, 204, 0.15), rgba(0, 214, 167, 0.1)) !important;
+            border: 2px dashed rgba(0, 214, 167, 0.5) !important;
+            border-radius: var(--radius) !important;
+            padding: 30px 20px !important;
+            transition: all 200ms ease !important;
+        }
+
+        [data-testid="stFileUploadDropzone"]:hover {
+            background: linear-gradient(135deg, rgba(5, 82, 204, 0.25), rgba(0, 214, 167, 0.2)) !important;
+            border-color: rgba(0, 214, 167, 0.8) !important;
+            box-shadow: 0 8px 24px rgba(0, 214, 167, 0.2) !important;
+        }
+
+        /* Dosya yükleyici içindeki metin */
+        [data-testid="stFileUploadDropzone"] > div {
+            color: rgba(242, 247, 255, 0.8) !important;
+            font-weight: 500 !important;
+        }
+
+        /* Dosya yükleyici ikon */
+        [data-testid="stFileUploadDropzone"] svg {
+            color: rgba(0, 214, 167, 0.7) !important;
+        }
+
+        /* Browse button */
+        [data-testid="stFileUploadDropzone"] > button {
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent)) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 8px 16px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            margin-top: 10px !important;
+            transition: all 150ms ease !important;
+        }
+
+        [data-testid="stFileUploadDropzone"] > button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 20px rgba(0, 82, 204, 0.4) !important;
+        }
+
+        /* Yüklenen dosya gösterimi */
+        [data-testid="stFileUploadDropzone"] + div {
+            margin-top: 15px !important;
+        }
+
+        /* Tabs Tasarımı */
+        [data-testid="stTabs"] [role="tablist"] {
+            border-bottom: 2px solid rgba(242, 247, 255, 0.1) !important;
+            gap: 5px !important;
+        }
+
+        [data-testid="stTabs"] button[role="tab"] {
+            background: transparent !important;
+            color: rgba(242, 247, 255, 0.6) !important;
+            border-bottom: 3px solid transparent !important;
+            padding: 12px 20px !important;
+            font-weight: 600 !important;
+            transition: all 200ms ease !important;
+        }
+
+        [data-testid="stTabs"] button[role="tab"]:hover {
+            color: rgba(242, 247, 255, 0.9) !important;
+            border-bottom-color: rgba(0, 214, 167, 0.4) !important;
+        }
+
+        [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+            color: var(--brand-accent) !important;
+            border-bottom-color: var(--brand-accent) !important;
+            box-shadow: 0 3px 0 var(--brand-accent) inset !important;
+        }
+
+        /* Sidebar öğeleri */
+        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:has(> .stRadio) {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-radius: var(--radius) !important;
+            padding: 8px !important;
+            margin: 8px 0 !important;
+        }
+
+        /* Radio butonları */
+        .stRadio > label {
+            color: rgba(242, 247, 255, 0.85) !important;
+            font-weight: 500 !important;
+            padding: 8px 12px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 150ms ease !important;
+        }
+
+        .stRadio > label:hover {
+            background: rgba(0, 214, 167, 0.15) !important;
+        }
+
+        .stRadio input[type="radio"]:checked + span {
+            color: var(--brand-accent) !important;
+        }
+
+        /* Expander (Ayarlar vb.) */
+        [data-testid="stExpander"] > summary {
+            color: rgba(242, 247, 255, 0.8) !important;
+            font-weight: 600 !important;
+            padding: 12px !important;
+            background: rgba(0, 214, 167, 0.08) !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 150ms ease !important;
+        }
+
+        [data-testid="stExpander"] > summary:hover {
+            background: rgba(0, 214, 167, 0.15) !important;
+        }
+
         /* Streamlit varsayılan üst menü ve footer gizleme */
         #MainMenu { visibility: hidden; }
         footer { visibility: hidden; }
