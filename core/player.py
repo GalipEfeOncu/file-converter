@@ -8,16 +8,18 @@ import shutil
 from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+
 
 class AudioConverter:
     import shutil
     import logging
 
+
 class AudioConverter:
     def __init__(self):
         self.ffmpeg_available = shutil.which("ffmpeg") is not None
-        
+
         if not self.ffmpeg_available:
             logging.warning("Uyarı: Sistemde FFmpeg bulunamadı.")
         else:
@@ -40,7 +42,7 @@ class AudioConverter:
             audio = AudioSegment.from_file(input_path)
 
             audio.export(output_path, format=target_format.lower())
-            
+
             logging.info(f"Başarılı: Ses Dönüşümü -> {output_path} ({target_format.upper()})")
             return True
 
@@ -53,8 +55,9 @@ class AudioConverter:
         except Exception as e:
             logging.error(f"Beklenmeyen Hata (Ses Dönüşümü): {e}")
             return False
+
     def convert_mp3_to_ogg(self, input_path: str, output_path: str) -> bool:
         return self.convert_audio(input_path, output_path, target_format="ogg")
 
     def convert_ogg_to_mp3(self, input_path: str, output_path: str) -> bool:
-        return self.convert_audio(input_path, output_path, target_format="mp3")        
+        return self.convert_audio(input_path, output_path, target_format="mp3")

@@ -34,7 +34,7 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Görevler:**
     - [x] `core/converter.py` içinde PDF-to-Text ve CSV-to-XLSX dönüşümleri için kütüphane seçimlerini yap.
     - [x] Dönüştürme fonksiyonlarının girdi-çıktı imzalarını ve hata yakalama (try-except) yapısını kur.
-    - [ ] `core/player.py` içinde sistemde `ffmpeg` yüklü olup olmadığını denetleyen doğrulama fonksiyonunu yaz.
+    - [x] `core/player.py` içinde sistemde `ffmpeg` yüklü olup olmadığını denetleyen doğrulama fonksiyonunu yaz.
     - [x] Temel ses dönüşüm (MP3/WAV) iskeletini oluştur.
 
 ### 🟡 Issue #3: PDF Rendering ve Tablo Veri Görüntüleme
@@ -80,10 +80,10 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Sorumlu:** **Said Hamza Turan**
 *   **Özet:** Proje detaylarındaki eksik görsel ve diğer metin formatı dönüşümlerini (PNG/JPG/WEBP, DOCX->PDF) kodlamak.
 *   **Görevler:**
-    - [ ] `core/converter.py` içine Pillow (PIL) kullanarak PNG <-> JPG <-> WEBP dönüşüm imkanlarını ekle.
-    - [ ] DOCX dosyalarından PDF ve TXT formatına dönüştürme fonksiyonlarını yaz.
-    - [ ] Arayüzde kalite seçeneği (görseller için %50, %80 vb.) alınabilecek şekilde fonksiyon imzalarına argüman (`quality: int`) ekle.
-    - [ ] `player.py` dosyasındaki eksik kalan MP3 <-> OGG eklentilerini tamamla.
+    - [x] `core/converter.py` içine Pillow (PIL) kullanarak PNG <-> JPG <-> WEBP dönüşüm imkanlarını ekle.
+    - [x] DOCX dosyalarından PDF ve TXT formatına dönüştürme fonksiyonlarını yaz.
+    - [x] Arayüzde kalite seçeneği (görseller için %50, %80 vb.) alınabilecek şekilde fonksiyon imzalarına argüman (`quality: int`) ekle.
+    - [x] `player.py` dosyasındaki eksik kalan MP3 <-> OGG eklentilerini tamamla.
 
 ### 🟡 Issue #8: Arayüz Görüntüleme Bileşenlerinin (UI) Bağlanması
 *   **Sorumlu:** **Abdulkadir Sar**
