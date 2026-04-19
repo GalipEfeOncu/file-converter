@@ -2,6 +2,10 @@
 ## Ekip Görev Dağılımı ve Proje Mimarisi
 
 > Bu belge, her ekip üyesinin sorumluluklarını ve modül sahipliklerini tanımlar. Her geliştirici yalnızca kendi alanında çalışacak; diğer modüllerle koordinasyon, net arayüzler üzerinden sağlanacaktır.
+>
+> 💡 Yeni başlayan geliştirici/model misin? Önce `docs/AGENT_GUIDE.md` (tek dosyada tam proje rehberi) sonra bu dosyayı oku.
+>
+> **Son Güncelleme:** 2026-04-19
 
 ---
 
@@ -98,10 +102,10 @@ Kimlerin hangi dosyalarda kodlama yapacağını kolayca takip etmek için özet 
 | Rol | Sorumlu Kişi | Doğrudan Müdahale Edeceği Dosyalar (`.py` vb.) |
 |---|---|---|
 | **Proje Mimarı** | Galip Efe Öncü | `main.py`<br>`core/ai_engine.py`<br>`config/settings.py` |
-| **Mantık Mühendisi** | Henüz Atanmadı | `core/converter.py`<br>`core/player.py` |
-| **Görüntüleme Uzmanı** | Henüz Atanmadı | `core/viewer.py` |
-| **Arayüz Tasarımcısı** | Henüz Atanmadı | `ui/dashboard.py`<br>`ui/styles.py` |
-| **QA & Test Uzmanı** | Henüz Atanmadı | `assets/languages.json`<br>`requirements.txt`<br>`tests/` klasörü |
+| **Mantık Mühendisi** | Said Hamza Turan | `core/converter.py`<br>`core/player.py` |
+| **Görüntüleme Uzmanı** | Abdulkadir Sar | `core/viewer.py` |
+| **Arayüz Tasarımcısı** | Samet Demir | `ui/dashboard.py`<br>`ui/styles.py` |
+| **QA & Test Uzmanı** | Muhammed Ali Avcı | `assets/languages.json`<br>`requirements.txt`<br>`tests/` klasörü |
 
 ---
 

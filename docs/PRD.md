@@ -1,10 +1,11 @@
 # 📋 Product Requirements Document (PRD)
 # Universal File Workstation
 
-> **Version:** 1.0  
-> **Last Updated:** 2026-04-12  
-> **Status:** In Development (v0.1.0-alpha)  
+> **Version:** 1.1
+> **Last Updated:** 2026-04-19
+> **Status:** In Development (v0.1.0-alpha)
 > **Repository:** [GalipEfeOncu/file-converter](https://github.com/GalipEfeOncu/file-converter)
+> **Companion Doc:** See `docs/AGENT_GUIDE.md` for a model-friendly, code-free primer of the same scope.
 
 ---
 
@@ -54,13 +55,14 @@ The ultimate goal is to empower students, professionals, and power users with a 
 
 ### 2.5 👁️ File Viewing & Preview
 
-- [x] **PDF Rendering**: Convert PDF pages to PNG images using `PyMuPDF (fitz)` for in-app display
-- [x] **Table Data Viewer**: Read CSV and Excel (`.xls`, `.xlsx`) files into `pandas.DataFrame`
-- [x] **Format Validator**: Extension-based validation that rejects unsupported file types with a clear error message
-- [ ] **PDF Page Display**: Render PDF page images sequentially in the Streamlit UI via `st.image`
-- [ ] **Interactive Table Display**: Present DataFrames using `st.dataframe` or `st.data_editor` with clean formatting
-- [ ] **Media Player Integration**: Embed `st.audio` and `st.video` widgets for media file playback
-- [ ] **Text File Viewer**: Read and display DOCX/TXT content with UTF-8 decoding via `st.markdown` or `st.text_area`
+- [x] **PDF Rendering**: Convert PDF pages to PNG images using `PyMuPDF (fitz)` (`FileViewer.render_pdf`)
+- [x] **Table Data Viewer**: Read CSV and Excel (`.xls`, `.xlsx`) files into `pandas.DataFrame` (`FileViewer.read_table`)
+- [x] **Format Validator**: Extension-based validation that rejects unsupported file types with a clear `ValueError`
+- [x] **PDF Page Display**: `FileViewer.display_pdf` iterates pages and shows them sequentially via `st.image`
+- [x] **Interactive Table Display**: `FileViewer.display_table` presents DataFrames via `st.dataframe`
+- [x] **Media Player Integration**: `FileViewer.display_audio` / `display_video` embed `st.audio` and `st.video` widgets
+- [x] **Text File Viewer**: `FileViewer.display_text_document` reads DOCX/TXT as UTF-8 and renders with `st.markdown` / `st.text_area`
+- [ ] **Tab-level wiring**: The View tab in `Dashboard.render_main_area()` still shows a placeholder; it must dispatch to the appropriate `FileViewer.display_*` based on the uploaded file's extension
 
 ### 2.6 🌐 Internationalization (i18n)
 
@@ -78,8 +80,9 @@ The ultimate goal is to empower students, professionals, and power users with a 
 - [x] Styled interactive elements: buttons with gradient backgrounds, hover lift effects, and active press states
 - [x] Custom scrollbar styling for a polished dark theme look
 - [x] Hidden default Streamlit header menu and footer for a clean, app-like experience
-- [ ] Dashboard layout with `st.sidebar` and main content area properly structured (`ui/dashboard.py`)
-- [ ] Tab-based navigation using `st.tabs` for Convert, View, and AI sections (replacing temporary `st.radio`)
+- [x] Dashboard layout with `st.sidebar` and main content area properly structured (`ui/dashboard.py` — `Dashboard` class with `render_sidebar()` + `render_main_area()`)
+- [x] Tab-based navigation using `st.tabs` for Convert, View, and AI sections (`render_main_area()` builds them from i18n keys)
+- [ ] Move the hardcoded sidebar section labels and warning/info messages in `dashboard.py` to `assets/languages.json`
 
 ### 2.8 🧪 Quality Assurance & Testing
 
@@ -95,8 +98,8 @@ The ultimate goal is to empower students, professionals, and power users with a 
 - [x] File upload widget (`st.file_uploader`) supporting 30+ file extensions
 - [x] Session-based file tracking: uploaded file persisted in `st.session_state.uploaded_file`
 - [x] Success notification on file upload with filename display
-- [ ] Enhanced drag-and-drop upload area with custom CSS styling
-- [ ] File conversion history panel in the sidebar
+- [x] Enhanced drag-and-drop upload area with custom CSS styling (gradient + dashed border in `ui/styles.py`)
+- [x] File history panel in the sidebar (last 5 files, persisted via `st.session_state.file_history`, populated by `Dashboard._add_to_file_history`)
 
 ---
 
@@ -116,12 +119,12 @@ The ultimate goal is to empower students, professionals, and power users with a 
 
 ### 3.2 🖥️ Advanced Dashboard & Navigation *(Priority: High)*
 
-- [ ] Replace temporary `st.radio` sidebar with a modern `render_sidebar()` component
-- [ ] Implement `render_main_area()` with proper `st.tabs` integration
+- [x] Replace temporary `st.radio` sidebar with a modern `render_sidebar()` component
+- [x] Implement `render_main_area()` with proper `st.tabs` integration
 - [ ] Connect conversion tab to `core/converter.py` with button-triggered format conversion
-- [ ] Connect viewing tab to `core/viewer.py` with live file preview
+- [ ] Connect viewing tab to `core/viewer.py` with live file preview (dispatch on file extension)
 - [ ] Connect AI tab to `core/ai_engine.py` with interactive analysis interface
-- [ ] State-driven button and status management for conversion workflows
+- [ ] State-driven button and status management for conversion workflows (progress, error toasts, download buttons)
 
 ### 3.3 📦 Desktop Packaging *(Priority: Medium)*
 

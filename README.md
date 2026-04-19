@@ -15,6 +15,8 @@ A modern, AI-powered desktop application for seamless file conversion, in-app do
 
 ---
 
+> 🤖 **For AI agents / contributors:** start with [`docs/AGENT_GUIDE.md`](docs/AGENT_GUIDE.md) — a single-file primer that lets you understand the entire project (architecture, module APIs, session state, i18n rules, conventions, known bugs) without opening any source file.
+
 ## 📖 What is Universal File Workstation?
 
 **Universal File Workstation** is a cross-platform desktop application that eliminates the need to juggle multiple tools for everyday file tasks. It brings together **file format conversion**, **document & media viewing**, and **AI-powered content analysis** into a single, elegant Streamlit interface.

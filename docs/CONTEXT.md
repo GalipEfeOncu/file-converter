@@ -3,8 +3,10 @@
 > **Project:** Universal File Workstation
 > **Version:** `0.1.0-alpha`
 > **License:** MIT
-> **Language:** Python 3.x
-> **Last Updated:** 2026-04-12
+> **Language:** Python 3.10+
+> **Last Updated:** 2026-04-19
+
+> 💡 **For low-capacity / fast coding models:** read `docs/AGENT_GUIDE.md` first — it is a single-file primer that lets a model contribute without reading the source code. This document is a deeper technical reference.
 
 ---
 
@@ -84,7 +86,7 @@ file-converter/
 | `AudioConverter` | `core/player.py` | MP3↔OGG, generic audio conversion via pydub+FFmpeg |
 | `FileViewer` | `core/viewer.py` | PDF page rendering (PyMuPDF), tabular data reading |
 | `AIEngine` | `core/ai_engine.py` | Text summarization & Q&A (stub — TODO) |
-| `Dashboard` | `ui/dashboard.py` | Sidebar & main area layout (stub — TODO) |
+| `Dashboard` | `ui/dashboard.py` | Sidebar (logo, language, navigation, uploader, file history, settings) & main area with `st.tabs` (Convert / View / AI) |
 
 ---
 
@@ -112,7 +114,7 @@ file-converter/
 
 | Directory | Contents | Rule |
 |:---|:---|:---|
-| `core/` | Business logic only | No Streamlit imports allowed |
+| `core/` | Business logic only | No Streamlit imports allowed (current exception: `core/viewer.py` exposes optional `display_*` helpers that import `streamlit` — do not extend this pattern to other `core/` modules) |
 | `ui/` | Presentation logic only | May import Streamlit; no file I/O |
 | `config/` | App-wide constants & env loading | Static class, no business logic |
 | `assets/` | Static data files (JSON, images) | No code files |
@@ -145,13 +147,16 @@ main.py → main()
   ├── apply_custom_css()            # Inject design system (ui/styles.py)
   ├── init_state()                  # Initialize session_state defaults
   │     ├── language = "tr"
-  │     ├── active_tab = "home"
-  │     └── uploaded_file = None
-  ├── load_languages()              # Read assets/languages.json → dict
-  ├── Sidebar: Language selector    # Triggers st.rerun() on change
-  ├── Sidebar: Navigation radio     # Sets active_tab
-  ├── Sidebar: File uploader        # Stores file in session_state
-  └── Tab routing (if/elif chain)   # Renders active tab content
+  │     ├── active_tab = "convert"
+  │     ├── uploaded_file = None
+  │     └── file_history = []
+  ├── load_languages()              # Read assets/languages.json → dict (selected lang slice)
+  └── Dashboard(texts)
+        ├── render_sidebar()        # logo, language selectbox, navigation radio,
+        │                           # file_uploader (writes to session_state.uploaded_file
+        │                           # and appends to file_history), settings expander
+        └── render_main_area()      # st.tabs(Convert, View, AI) — tab bodies are still
+                                    # placeholders waiting for core/ wiring
 ```
 
 ### 4.2 File Conversion Flow
@@ -269,11 +274,12 @@ python test_core.py
 
 | Area | Status | Detail |
 |:---|:---|:---|
-| `core/player.py` | ⚠️ Bug | Contains **duplicate class definitions** (`AudioConverter` defined twice) and **duplicate `__init__`** methods. Needs merge/cleanup. |
+| `core/player.py` | ⚠️ Bug | Contains **duplicate class definitions** (`AudioConverter` defined twice) and **duplicate `__init__`** methods. Python keeps only the last one, but the file must be cleaned up. |
 | `core/ai_engine.py` | 🔲 Stub | `summarize()` and `answer_question()` return placeholder strings. Gemini/OpenAI integration pending. |
-| `ui/dashboard.py` | 🔲 Stub | `render_sidebar()` and `render_main_area()` are empty `pass` stubs. Navigation is currently hardcoded in `main.py`. |
-| `main.py` L69 | ⚠️ Hardcoded | Info message is hardcoded in Turkish, not using i18n system. |
-| Tab content | 🔲 Placeholder | Convert/View/AI tabs show placeholder text, not wired to core modules yet. |
+| `requirements.txt` | ⚠️ Missing | `core/converter.py` imports `docx2pdf` but the package is not listed in `requirements.txt`. Add `docx2pdf~=<version>`. |
+| `ui/dashboard.py` | 🌐 Hardcoded i18n | Sidebar section labels (`🌐 Dil / Language`, `📊 Navigasyon`, `📁 Dosya Yükleme`, `⏱️ Dosya Geçmişi`, `⚙️ Ayarlar`, etc.) and warning/info messages are hardcoded in Turkish. They should be moved to `assets/languages.json`. |
+| Tab content (Convert / View / AI) | 🔌 Not wired | `Dashboard.render_main_area()` shows placeholder text ("Dönüştürme modülü yükleniyor...") and is not yet connected to `FileConverter`, `FileViewer`, or `AIEngine`. |
+| `core/viewer.py` | 🏗️ Architecture | Imports `streamlit` to expose `display_pdf/table/audio/video/text_document` helpers — violates the "no Streamlit in core" rule. Tolerated for now; do not replicate elsewhere. |
 
 ---
 
