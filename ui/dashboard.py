@@ -300,6 +300,8 @@ class Dashboard:
                                     data=output_data,
                                     file_name=output_name
                                 )
+                                # Geçici çıktı dosyasını temizle
+                                Path(output_path).unlink(missing_ok=True)
                             else:
                                 st.error(self.texts.get("error_unsupported_file", "Dönüştürme başarısız."))
 
@@ -313,15 +315,15 @@ class Dashboard:
         with tabs[1]:  # Görüntüle
             st.header(f"👁️ {tab_names[1]}")
             if st.session_state.uploaded_file:
-                st.write(f"📄 **Seçili Dosya:** {st.session_state.uploaded_file.name}")
-                st.write("Dosya görüntüleme modülü yükleniyor...")
+                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
+                st.info(self.texts.get("status_architecture_in_progress", "Görüntüleme modülü yükleniyor..."), icon="ℹ️")
             else:
-                st.info("Lütfen önce yan menüden bir dosya yükleyin.", icon="ℹ️")
+                st.info(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="ℹ️")
 
         with tabs[2]:  # AI Analizi
             st.header(f"🤖 {tab_names[2]}")
             if st.session_state.uploaded_file:
-                st.write(f"📄 **Seçili Dosya:** {st.session_state.uploaded_file.name}")
-                st.write("AI analiz modülü yükleniyor...")
+                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
+                st.info(self.texts.get("status_architecture_in_progress", "AI analiz modülü yükleniyor..."), icon="ℹ️")
             else:
-                st.info("Lütfen önce yan menüden bir dosya yükleyin.", icon="ℹ️")
+                st.info(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="ℹ️")
