@@ -26,7 +26,14 @@
         "status_architecture_in_progress": "Proje mimarisi kuruluyor. Moduller yuklendiginde burasi ana calisma alanina donecek.",
         "__MSG_SECTION__": "---------- MESAJLAR VE HATALAR ----------",
         "error_unsupported_file": "Desteklenmeyen dosya turu. Lutfen gecerli bir dosya yukleyin.",
-        "success_conversion": "Dosya basariyla donusturuldu!"
+        "success_conversion": "Dosya basariyla donusturuldu!",
+        "btn_convert": "Donustur",
+        "btn_download": "Indir",
+        "select_target_format": "Hedef format secin",
+        "converting_in_progress": "Donusturuluyor...",
+        "no_file_uploaded": "Lutfen once yan menuden bir dosya yukleyin.",
+        "selected_file": "Secili Dosya",
+        "no_conversion_available": "Bu dosya turu icin donusturme destegi bulunmuyor."
     },
     "en": {
         "__UI_HEADER__": "---------- GENERAL UI ----------",
@@ -44,6 +51,13 @@
         "status_architecture_in_progress": "Project architecture is being prepared. This area will become the main workspace once modules are integrated.",
         "__MSG_SECTION__": "---------- MESSAGES AND ERRORS ----------",
         "error_unsupported_file": "Unsupported file type. Please upload a valid file.",
-        "success_conversion": "File successfully converted!"
+        "success_conversion": "File successfully converted!",
+        "btn_convert": "Convert",
+        "btn_download": "Download",
+        "select_target_format": "Select target format",
+        "converting_in_progress": "Converting...",
+        "no_file_uploaded": "Please upload a file from the sidebar first.",
+        "selected_file": "Selected File",
+        "no_conversion_available": "No conversion options available for this file type."
     }
 }

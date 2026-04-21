@@ -10,8 +10,33 @@ Streamlit'in tasarım bileşenlerini kullanarak modern, temiz ve kullanımı kol
 
 import streamlit as st
 import json
+import os
 from datetime import datetime
+from pathlib import Path
 from config.settings import Config
+
+# ---------------------------------------------------------------------------
+# Dosya uzantısına göre desteklenen hedef formatlar
+# ---------------------------------------------------------------------------
+_FORMAT_MAP = {
+    # Dokümanlar
+    ".pdf": ["docx"],
+    ".docx": ["pdf", "txt"],
+    # Tablo ve Veri
+    ".csv": ["xlsx"],
+    ".xlsx": ["csv"],
+    # Görseller
+    ".jpg": ["png", "webp", "bmp"],
+    ".jpeg": ["png", "webp", "bmp"],
+    ".png": ["jpg", "webp", "bmp"],
+    ".webp": ["jpg", "png", "bmp"],
+    ".bmp": ["jpg", "png", "webp"],
+    # Ses
+    ".mp3": ["wav", "ogg", "flac"],
+    ".wav": ["mp3", "ogg", "flac"],
+    ".ogg": ["mp3", "wav", "flac"],
+    ".flac": ["mp3", "wav", "ogg"],
+}
 
 class Dashboard:
     """Uygulamanın genel sayfa düzenini kurgular."""
@@ -166,6 +191,57 @@ class Dashboard:
         ]
         st.session_state.file_history.append(file_info)
 
+    # ------------------------------------------------------------------
+    # Converter yardımcı metotları
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _save_upload_to_temp(uploaded_file):
+        """Yüklenen dosyayı temp/ klasörüne yazar ve dosya yolunu döndürür."""
+        os.makedirs("temp", exist_ok=True)
+        path = os.path.join("temp", uploaded_file.name)
+        with open(path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        return path
+
+    @staticmethod
+    def _dispatch_conversion(input_path, source_ext, target_format, output_path):
+        """Kaynak uzantı ve hedef formata göre doğru converter metodunu çağırır.
+
+        Returns:
+            bool: Dönüşüm başarılıysa True, değilse False.
+        """
+        from core.converter import FileConverter
+        from core.player import AudioConverter
+
+        fc = FileConverter()
+        source = source_ext.lower()
+        target = target_format.lower()
+
+        # Doküman dönüşümleri
+        if source == ".pdf" and target == "docx":
+            return fc.convert_pdf_to_docx(input_path, output_path)
+        elif source == ".docx" and target == "pdf":
+            return fc.convert_docx_to_pdf(input_path, output_path)
+        elif source == ".docx" and target == "txt":
+            return fc.convert_docx_to_txt(input_path, output_path)
+        elif source == ".csv" and target == "xlsx":
+            return fc.convert_csv_to_xlsx(input_path, output_path)
+        elif source == ".xlsx" and target == "csv":
+            return fc.convert_xlsx_to_csv(input_path, output_path)
+
+        # Görsel dönüşümleri
+        image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+        if source in image_exts and target in {"jpg", "jpeg", "png", "webp", "bmp"}:
+            return fc.convert_image(input_path, output_path, target)
+
+        # Ses dönüşümleri
+        audio_exts = {".mp3", ".wav", ".ogg", ".flac"}
+        if source in audio_exts and target in {"mp3", "wav", "ogg", "flac"}:
+            ac = AudioConverter()
+            return ac.convert_audio(input_path, output_path, target)
+
+        return False
+
     def render_main_area(self):
         """
         Ana içerik alanını st.tabs ile kurgular.
@@ -192,10 +268,47 @@ class Dashboard:
         with tabs[0]:  # Dönüştür
             st.header(f"🔄 {tab_names[0]}")
             if st.session_state.uploaded_file:
-                st.write(f"📄 **Seçili Dosya:** {st.session_state.uploaded_file.name}")
-                st.write("Dönüştürme modülü yükleniyor...")
+                uploaded = st.session_state.uploaded_file
+                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {uploaded.name}")
+
+                ext = os.path.splitext(uploaded.name)[1].lower()
+                targets = _FORMAT_MAP.get(ext, [])
+
+                if targets:
+                    target = st.selectbox(
+                        self.texts.get("select_target_format", "Hedef format seçin"),
+                        options=targets,
+                        format_func=lambda x: f".{x.upper()}"
+                    )
+
+                    if st.button(self.texts.get("btn_convert", "Dönüştür"), type="primary"):
+                        with st.spinner(self.texts.get("converting_in_progress", "Dönüştürülüyor...")):
+                            input_path = self._save_upload_to_temp(uploaded)
+                            output_name = os.path.splitext(uploaded.name)[0] + f".{target}"
+                            output_path = os.path.join("temp", output_name)
+
+                            success = self._dispatch_conversion(
+                                input_path, ext, target, output_path
+                            )
+
+                            if success:
+                                st.success(self.texts.get("success_conversion", "Başarılı!"))
+                                with open(output_path, "rb") as f:
+                                    output_data = f.read()
+                                st.download_button(
+                                    self.texts.get("btn_download", "İndir"),
+                                    data=output_data,
+                                    file_name=output_name
+                                )
+                            else:
+                                st.error(self.texts.get("error_unsupported_file", "Dönüştürme başarısız."))
+
+                            # Geçici girdi dosyasını temizle
+                            Path(input_path).unlink(missing_ok=True)
+                else:
+                    st.warning(self.texts.get("no_conversion_available", "Bu dosya türü için dönüştürme desteği bulunmuyor."))
             else:
-                st.warning("Lütfen önce yan menüden bir dosya yükleyin.", icon="⚠️")
+                st.warning(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="⚠️")
 
         with tabs[1]:  # Görüntüle
             st.header(f"👁️ {tab_names[1]}")
