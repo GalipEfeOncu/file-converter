@@ -487,7 +487,6 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
     - [ ] Screenshot çekimi.
     - [ ] Üçüncü parti lisans notları derleme.
     - [ ] GitHub Release sayfası taslağı + ekibe review.
-    - [ ] Sprint 6 final raporu `WEEKLY_PROGRESS_ALI.md`'ye işlenir.
 
 ---
 
