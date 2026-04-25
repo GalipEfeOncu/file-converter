@@ -11,7 +11,7 @@ Uygulamayı Streamlit'in standart görünümünden çıkarıp, özel CSS enjeksi
 import streamlit as st
 
 
-def apply_custom_css():
+def apply_custom_css(theme: str = "dark"):
     """Uygulama geneline özel CSS enjekte eder.
 
     Bu fonksiyon:
@@ -21,6 +21,14 @@ def apply_custom_css():
 
     Kullandığınız renkleri / fontu değiştirmek için aşağıdaki :root blokundaki değişkenleri düzenleyin.
     """
+    
+    # Try to read theme from session_state if available, falling back to passed parameter
+    try:
+        if "theme" in st.session_state:
+            theme = st.session_state.theme
+    except Exception:
+        pass
+
     custom_css = """
     <style>
         /* --- Kurumsal Tasarım Sistemi (Renk & Tipografi) --- */
@@ -74,6 +82,13 @@ def apply_custom_css():
             background: linear-gradient(180deg, rgba(5, 65, 119, 0.95) 0%, rgba(12, 16, 33, 0.95) 100%) !important;
             border-right: 1px solid var(--border) !important;
         }
+        
+        /* Sidebar responsive collapse */
+        @media (max-width: 768px) {
+            [data-testid="stSidebar"] {
+                min-width: 320px !important;
+            }
+        }
 
         /* Buttonlar */
         .stButton>button,
@@ -82,7 +97,7 @@ def apply_custom_css():
             border: 1px solid rgba(255,255,255,0.15) !important;
             border-radius: var(--radius) !important;
             box-shadow: var(--shadow) !important;
-            color: var(--text-primary) !important;
+            color: #ffffff !important;
             padding: 0.65rem 1.1rem !important;
             font-weight: 600 !important;
             transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
@@ -184,6 +199,15 @@ def apply_custom_css():
             border-bottom: 2px solid rgba(242, 247, 255, 0.1) !important;
             gap: 5px !important;
         }
+        
+        [data-testid="stTabs"] [role="tabpanel"] {
+            animation: fadeIn 200ms ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
         [data-testid="stTabs"] button[role="tab"] {
             background: transparent !important;
@@ -257,6 +281,16 @@ def apply_custom_css():
         [data-testid="stExpander"] > summary:hover {
             background: rgba(0, 214, 167, 0.15) !important;
         }
+        
+        /* Geçmiş Dosya Öğeleri (Dark Theme Defaults) */
+        .history-file-item {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: rgba(242, 247, 255, 0.7) !important;
+        }
+        .history-file-item-time {
+            color: rgba(242, 247, 255, 0.5) !important;
+        }
 
         /* Streamlit varsayılan üst menü ve footer gizleme */
         #MainMenu { visibility: hidden; }
@@ -264,4 +298,77 @@ def apply_custom_css():
     </style>
     """
 
+    light_theme_css = """
+    <style>
+        :root {
+            /* Renk Paleti - Light Theme */
+            --brand-primary: #0052CC;
+            --brand-secondary: #FFAB00;
+            --brand-accent: #00D6A7;
+            --bg-base: #f7f9fc;
+            --bg-surface: #ffffff;
+            --bg-surface-2: #eef2f6;
+            --text-primary: #0b1220;
+            --text-secondary: rgba(11, 18, 32, 0.75);
+            --border: rgba(11, 18, 32, 0.12);
+            --shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Sidebar Light Theme */
+        [data-testid="stSidebar"] > div:first-child {
+            background: linear-gradient(180deg, rgba(235, 242, 250, 0.95) 0%, rgba(247, 249, 252, 0.95) 100%) !important;
+        }
+
+        /* Input / Select / Textarea Light Theme */
+        input, textarea, select {
+            background: rgba(0, 0, 0, 0.03) !important;
+            border: 1px solid rgba(0, 0, 0, 0.12) !important;
+        }
+
+        /* Dosya Yükleyici Light Theme */
+        [data-testid="stFileUploadDropzone"] {
+            background: linear-gradient(135deg, rgba(5, 82, 204, 0.05), rgba(0, 214, 167, 0.05)) !important;
+            border-color: rgba(0, 214, 167, 0.4) !important;
+        }
+        [data-testid="stFileUploadDropzone"] > div {
+            color: rgba(11, 18, 32, 0.8) !important;
+        }
+        
+        /* Tabs Light Theme */
+        [data-testid="stTabs"] [role="tablist"] {
+            border-bottom-color: rgba(0, 0, 0, 0.1) !important;
+        }
+        [data-testid="stTabs"] button[role="tab"] {
+            color: rgba(11, 18, 32, 0.6) !important;
+        }
+        [data-testid="stTabs"] button[role="tab"]:hover {
+            color: rgba(11, 18, 32, 0.9) !important;
+        }
+
+        /* Sidebar Elements Light Theme */
+        .stRadio > label {
+            color: rgba(11, 18, 32, 0.85) !important;
+        }
+        [data-testid="stExpander"] > summary {
+            color: rgba(11, 18, 32, 0.8) !important;
+            background: rgba(0, 214, 167, 0.1) !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:has(> .stRadio) {
+            background: rgba(0, 0, 0, 0.02) !important;
+        }
+        
+        /* History Files Light Theme */
+        .history-file-item {
+            background: rgba(0, 0, 0, 0.03) !important;
+            border-color: rgba(0, 0, 0, 0.06) !important;
+            color: rgba(11, 18, 32, 0.8) !important;
+        }
+        .history-file-item-time {
+            color: rgba(11, 18, 32, 0.5) !important;
+        }
+    </style>
+    """
+
     st.markdown(custom_css, unsafe_allow_html=True)
+    if theme == "light":
+        st.markdown(light_theme_css, unsafe_allow_html=True)

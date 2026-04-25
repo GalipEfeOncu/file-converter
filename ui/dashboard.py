@@ -145,19 +145,16 @@ class Dashboard:
                             f"{len(history)} {self.texts.get('history_files_count', 'dosya')}</div>", unsafe_allow_html=True)
                 for idx, file_info in enumerate(reversed(history[-5:])):  # Son 5 dosyayı göster
                     st.markdown(f"""
-                    <div style='
+                    <div class="history-file-item" style="
                         padding: 8px 10px;
                         margin: 4px 0;
-                        background: rgba(255, 255, 255, 0.04);
-                        border: 1px solid rgba(255, 255, 255, 0.08);
                         border-radius: 8px;
                         font-size: 11px;
-                        color: rgba(242, 247, 255, 0.7);
                         cursor: pointer;
                         transition: all 150ms ease;
-                    '>
+                    ">
                     📄 {file_info['name']}<br>
-                    <span style='color: rgba(242, 247, 255, 0.5);'>{file_info['time']}</span>
+                    <span class="history-file-item-time">{file_info['time']}</span>
                     </div>
                     """, unsafe_allow_html=True)
             else:
@@ -169,13 +166,28 @@ class Dashboard:
             # --- Ayarlar ---
             with st.expander(self.texts.get("sidebar_settings", "⚙️ Ayarlar")):
                 st.markdown(f"**{self.texts.get('settings_theme', 'Tema')}**")
-                st.selectbox(
+                if "theme" not in st.session_state:
+                    st.session_state.theme = "dark"
+                
+                theme_options = {
+                    "dark": self.texts.get("settings_theme_dark", "Koyu"),
+                    "light": self.texts.get("settings_theme_light", "Açık")
+                }
+                
+                current_theme_index = 0 if st.session_state.theme == "dark" else 1
+                
+                selected_theme_name = st.selectbox(
                     "Tema seçin", 
-                    [self.texts.get("settings_theme_dark", "Koyu"), self.texts.get("settings_theme_light", "Açık")], 
-                    disabled=True, 
-                    label_visibility="collapsed",
-                    help=self.texts.get("settings_theme_tooltip", "Açık tema Sprint 5'te gelecek")
+                    options=list(theme_options.values()), 
+                    index=current_theme_index,
+                    label_visibility="collapsed"
                 )
+                
+                for key, value in theme_options.items():
+                    if value == selected_theme_name:
+                        if st.session_state.theme != key:
+                            st.session_state.theme = key
+                            st.rerun()
                 
                 st.markdown(f"**{self.texts.get('settings_default_quality', 'Varsayılan Görsel Kalitesi')}**")
                 if "default_quality" not in st.session_state:
