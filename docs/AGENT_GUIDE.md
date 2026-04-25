@@ -5,7 +5,7 @@
 > **Hedef Kitle:** Düşük kapasiteli / hızlı kodlama modelleri (örn. küçük yardımcı LLM'ler).
 > **Bu dosyayı okuduktan sonra model:** Yeni özellik ekleyebilir, mevcut modülleri çağırabilir, doğru i18n anahtarlarını kullanabilir, hataları önleyebilir.
 >
-> **Kaynak Doğruluk:** Bu dosya `2026-04-19` itibarıyla `main.py`, `core/*`, `ui/*`, `config/*`, `assets/*` ve `tests/*` ile birebir senkronize edilmiştir.
+> **Kaynak Doğruluk:** Bu dosya `2026-04-21` itibarıyla `main.py`, `core/*`, `ui/*`, `config/*`, `assets/*` ve `tests/*` ile birebir senkronize edilmiştir.
 
 ---
 
@@ -13,7 +13,7 @@
 
 - **Proje Adı:** Universal File Workstation (klasör adı: `file-converter`)
 - **Tip:** Streamlit tabanlı, yerel-öncelikli (local-first), masaüstü/web hibrit dosya araç çantası.
-- **Üç Ana Yetenek:** Dosya Dönüştürme · Dosya Görüntüleme · AI Analizi (henüz stub).
+- **Üç Ana Yetenek:** Dosya Dönüştürme · Dosya Görüntüleme · AI Analizi (Gemini API entegre).
 - **Dil:** Python 3.10+
 - **UI:** Streamlit + özel CSS enjeksiyonu (karanlık tema).
 - **Çoklu Dil:** Türkçe (varsayılan) / İngilizce, runtime'da değiştirilebilir.
@@ -33,7 +33,7 @@ file-converter/
 │   ├── converter.py          ← FileConverter: PDF↔DOCX, CSV↔XLSX, Image, DOCX→PDF/TXT
 │   ├── player.py             ← AudioConverter: pydub + FFmpeg ile ses dönüşümü
 │   ├── viewer.py             ← FileViewer: PDF→PNG, tablo, ses/video/text gösterimi
-│   └── ai_engine.py          ← AIEngine (STUB): summarize() / answer_question()
+│   └── ai_engine.py          ← AIEngine: summarize/answer_question/extract_keywords/simplify (Gemini API)
 ├── ui/                       ← SUNUM KATMANI (dosya I/O YASAK)
 │   ├── dashboard.py          ← Dashboard sınıfı: render_sidebar() + render_main_area()
 │   └── styles.py             ← apply_custom_css(): tek fonksiyon, tüm tema CSS'i
@@ -135,17 +135,28 @@ fv.display_video(file_path: str, format: str = "video/mp4") -> None
 fv.display_text_document(file_path: str) -> None  # .txt -> text_area, .docx -> markdown
 ```
 
-### 2.5 `core/ai_engine.py` — `AIEngine` (STUB)
+### 2.5 `core/ai_engine.py` — `AIEngine`
+
+> **Güncelleme (2026-04-21, Issue #16):** Stub kaldırıldı, gerçek Gemini API entegrasyonu tamamlandı.
 
 ```python
 from core.ai_engine import AIEngine
 ai = AIEngine()
 
-ai.summarize(text: str) -> str             # şu an "Özet henüz oluşturulmadı."
-ai.answer_question(context: str, question: str) -> str  # şu an "Yanıt hazır değil."
+ai.summarize(text: str, length: str = "medium") -> str
+    # length: "short" | "medium" | "long"
+    # API key yoksa bilgilendirici fallback string döner
+ai.answer_question(context: str, question: str) -> str
+    # Context-feeding ile soru yanıtlama (RAG değil)
+ai.extract_keywords(text: str, top_k: int = 10) -> list[str]
+    # Anahtar kelime listesi; hata durumunda boş liste
+ai.simplify(text: str, level: str = "intermediate") -> str
+    # level: "basic" | "intermediate" | "advanced"
 ```
 
-> Görev: Galip Efe — `Config.GEMINI_API_KEY` üzerinden Gemini bağlanacak.
+> `Config.GEMINI_API_KEY` eksikse metotlar exception fırlatmaz; bilgilendirici string/boş liste döner.
+> Tüm metotlar `_call_gemini(prompt, system)` private helper üzerinden çalışır (DRY).
+> 8 adet projeye özel system prompt `_SYSTEM_PROMPTS` dict'inde tanımlıdır.
 
 ### 2.6 `ui/dashboard.py` — `Dashboard`
 
@@ -233,18 +244,19 @@ streamlit run main.py
     └── (Streamlit her etkileşimde script'i baştan çalıştırır)
 ```
 
-### 5.2 Dosya Dönüştürme (Hedef Akış — Henüz Tam Bağlanmadı)
+### 5.2 Dosya Dönüştürme Akışı (Issue #6 + #11 ile Tamamlandı)
 
 ```
 Kullanıcı sidebar'dan dosya yükler
   → st.session_state.uploaded_file = UploadedFile
   → file_history listesine eklenir
   → Kullanıcı "Dönüştür" sekmesine geçer
-  → (TODO) Hedef format seçilir + buton
-  → (TODO) Geçici diske yazılır (temp/)
-  → core.converter.FileConverter().convert_*() çağrılır
+  → _FORMAT_MAP ile uzantıya göre hedef formatlar st.selectbox'ta listelenir
+  → _save_upload_to_temp() ile temp/'e yazılır
+  → _dispatch_conversion() → FileConverter/AudioConverter çağrılır
   → bool sonuca göre st.success / st.error
   → Çıktı dosyası st.download_button ile sunulur
+  → Path.unlink() ile geçici dosyalar temizlenir
 ```
 
 ### 5.3 Hata Yönetimi Felsefesi
@@ -271,7 +283,7 @@ Kullanıcı sidebar'dan dosya yükler
 | `Pillow` | `~=11.2.1` | `converter` | Görsel dönüşümü |
 | `pydub` | `~=0.25.1` | `player` | Ses dönüşümü |
 | `audioop-lts` | `~=0.2.1` | (Python 3.13+ pydub uyumu) | |
-| `openai` | `~=1.70.0` | `ai_engine` (planlı) | LLM client |
+| `openai` | `~=1.70.0` | ~~`ai_engine`~~ (kullanılmıyor) | LLM client — `google-generativeai~=0.8.3` ile değiştirilmeli (Ali ile koordinasyon) |
 | `python-dotenv` | `~=1.0.1` | `config/settings` | `.env` yükleme |
 | `pytest` | `~=8.3.5` | `tests/*` | Test runner |
 
@@ -331,16 +343,16 @@ python -m pytest tests/test_requirements.py -v
 
 ## 9. Bilinen Sorunlar / Açık Görevler (Öncelik Sırasıyla)
 
-| # | Konum | Tip | Açıklama |
-|:---|:---|:---|:---|
-| 1 | `core/player.py` | 🐛 Bug | Çift `class AudioConverter` ve çift `__init__`. Birinciyi tamamen sil. |
-| 2 | `core/ai_engine.py` | 🔲 Stub | Gerçek Gemini/OpenAI entegrasyonu. `Config.GEMINI_API_KEY` mevcut. |
-| 3 | `requirements.txt` | ⚠️ Eksik | `docx2pdf` import ediliyor ama listede yok. |
-| 4 | `ui/dashboard.py` | 🌐 i18n | Sidebar başlıkları (Navigasyon, Ayarlar, vb.) hardcoded; `languages.json`'a taşı. |
-| 5 | `main.py` tab içerikleri | 🔌 Bağlantı | "Dönüştürme modülü yükleniyor..." placeholder'ları `FileConverter` çağrılarına bağlanmalı. |
-| 6 | View sekmesi | 🔌 Bağlantı | Yüklenen dosyanın uzantısına göre `FileViewer.display_*` çağrılmalı. |
-| 7 | AI sekmesi | 🔌 Bağlantı | Text input + `AIEngine.answer_question` veya `summarize` butonu. |
-| 8 | `core/viewer.py` | 🏗️ Mimari | Streamlit import'u var; saf-data ile UI'yı ayır (opsiyonel refactor). |
+| # | Konum | Tip | Açıklama | Durum |
+|:---|:---|:---|:---|:---|
+| 1 | `core/player.py` | 🐛 Bug | Çift `class AudioConverter` ve çift `__init__`. Birinciyi tamamen sil. | Açık (Issue #12) |
+| 2 | `core/ai_engine.py` | ~~🔲 Stub~~ | ~~Gerçek Gemini/OpenAI entegrasyonu.~~ Issue #16 ile tamamlandı. | ✅ Tamamlandı |
+| 3 | `requirements.txt` | ⚠️ Eksik | `docx2pdf` import ediliyor ama listede yok. `openai` → `google-generativeai` değişimi de gerekli. | Açık (Issue #15 + Ali koordinasyonu) |
+| 4 | `ui/dashboard.py` | 🌐 i18n | Sidebar başlıkları (Navigasyon, Ayarlar, vb.) hardcoded; `languages.json`'a taşı. | Açık (Issue #14) |
+| 5 | `main.py` tab içerikleri | ~~🔌 Bağlantı~~ | ~~"Dönüştürme modülü yükleniyor..." placeholder'ları~~ Dönüştür sekmesi bağlandı (Issue #6 + #11). | ✅ Tamamlandı |
+| 6 | View sekmesi | 🔌 Bağlantı | Yüklenen dosyanın uzantısına göre `FileViewer.display_*` çağrılmalı. | Açık (Issue #13) |
+| 7 | AI sekmesi | 🔌 Bağlantı | Text input + `AIEngine.answer_question` veya `summarize` butonu. | Açık (Issue #18) |
+| 8 | `core/viewer.py` | 🏗️ Mimari | Streamlit import'u var; saf-data ile UI'yı ayır (opsiyonel refactor). | Açık |
 
 ---
 

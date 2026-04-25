@@ -33,7 +33,9 @@
         "converting_in_progress": "Donusturuluyor...",
         "no_file_uploaded": "Lutfen once yan menuden bir dosya yukleyin.",
         "selected_file": "Secili Dosya",
-        "no_conversion_available": "Bu dosya turu icin donusturme destegi bulunmuyor."
+        "no_conversion_available": "Bu dosya turu icin donusturme destegi bulunmuyor.",
+        "error_api_key_missing": "API anahtari yapilandirilmamis. Lutfen .env dosyasinda GEMINI_API_KEY degerini ayarlayin.",
+        "error_ai_request_failed": "AI istegi basarisiz oldu. Lutfen tekrar deneyin."
     },
     "en": {
         "__UI_HEADER__": "---------- GENERAL UI ----------",
@@ -58,6 +60,8 @@
         "converting_in_progress": "Converting...",
         "no_file_uploaded": "Please upload a file from the sidebar first.",
         "selected_file": "Selected File",
-        "no_conversion_available": "No conversion options available for this file type."
+        "no_conversion_available": "No conversion options available for this file type.",
+        "error_api_key_missing": "API key is not configured. Please set GEMINI_API_KEY in the .env file.",
+        "error_ai_request_failed": "AI request failed. Please try again."
     }
 }

@@ -1,6 +1,6 @@
 # 🗺 Universal File Workstation: 6 Haftalık Geliştirme Yol Haritası
 
-> **Son Güncelleme:** 2026-04-19
+> **Son Güncelleme:** 2026-04-21
 > 💡 Hızlı oryantasyon için `docs/AGENT_GUIDE.md` (modeller/yeni gelen geliştiriciler için tek dosyalık özet) öncelikli okumadır.
 
 ---
@@ -73,11 +73,11 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 
 ### 🔴 Issue #6: Arayüz ve Dönüştürücü Modüllerinin Entegrasyonu
 *   **Sorumlu:** **Galip Efe Öncü**
-*   **Özet:** `main.py` içerisindeki dönüştürme (Convert) ve görüntüleme (View) sekmelerinin altyapısını Said ve Abdulkadir'in modülleriyle bağlamak.
+*   **Özet:** `ui/dashboard.py` içerisindeki dönüştürme (Convert) ve görüntüleme (View) sekmelerinin altyapısını Said ve Abdulkadir'in modülleriyle bağlamak.
 *   **Görevler:**
-    - [ ] `main.py` "Dönüştür" sekmesine `core/converter.py` modülünü import edip bağla.
-    - [ ] Streamlit arayüzünden seçilen dosya hedefine göre `converter.py` fonksiyonlarını tetikleyen buton ve durum yönetimini ekle.
-    - [ ] `ai_engine.py` için temel Gemini API bağlantı taslağını yaz ve System Prompt oluşturarak test altyapısını kur.
+    - [x] `main.py` "Dönüştür" sekmesine `core/converter.py` modülünü import edip bağla.
+    - [x] Streamlit arayüzünden seçilen dosya hedefine göre `converter.py` fonksiyonlarını tetikleyen buton ve durum yönetimini ekle.
+    - [x] `ai_engine.py` için temel Gemini API bağlantı taslağını yaz ve System Prompt oluşturarak test altyapısını kur.
 
 ### 🟠 Issue #7: Gelişmiş Dönüştürme Motorları (Resim & Belge)
 *   **Sorumlu:** **Said Hamza Turan**
@@ -129,18 +129,18 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** "Dönüştür" sekmesindeki placeholder metni kaldırıp, yüklenen dosyanın türüne göre hedef format seçtiren, butonla `FileConverter` metodlarını tetikleyen ve sonucu `st.download_button` ile kullanıcıya sunan tam akışı kurmak.
 *   **User Story:** _"Bir kullanıcı olarak, yüklediğim PDF/DOCX/CSV/XLSX/Image/Audio dosyamın hangi formatlara dönüştürülebileceğini görmek; tek bir butonla dönüşümü tetiklemek ve sonuç dosyasını aynı sayfadan indirmek istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] Dönüştür sekmesi, `st.session_state.uploaded_file` boşsa kullanıcıyı i18n stringi ile dosya yüklemeye yönlendirir.
-    - [ ] Yüklü dosyanın uzantısına göre **geçerli hedef formatlar** dinamik olarak `st.selectbox` içinde listelenir (örn. `.pdf` → `["docx"]`, `.csv` → `["xlsx"]`, image → `["png", "jpg", "webp"]`).
-    - [ ] "Dönüştür" butonuna basıldığında dosya `temp/` altına yazılır, ilgili `FileConverter.*` metodu çağrılır.
-    - [ ] Başarı durumunda `i18n["success_conversion"]` ile `st.success` ve `st.download_button` gösterilir.
-    - [ ] Başarısızlıkta `i18n["error_unsupported_file"]` veya benzeri ile `st.error` gösterilir; uygulama crash etmez.
-    - [ ] Dönüşüm sırasında `st.spinner` ile kullanıcıya geri bildirim verilir.
+    - [x] Dönüştür sekmesi, `st.session_state.uploaded_file` boşsa kullanıcıyı i18n stringi ile dosya yüklemeye yönlendirir.
+    - [x] Yüklü dosyanın uzantısına göre **geçerli hedef formatlar** dinamik olarak `st.selectbox` içinde listelenir (örn. `.pdf` → `["docx"]`, `.csv` → `["xlsx"]`, image → `["png", "jpg", "webp"]`).
+    - [x] "Dönüştür" butonuna basıldığında dosya `temp/` altına yazılır, ilgili `FileConverter.*` metodu çağrılır.
+    - [x] Başarı durumunda `i18n["success_conversion"]` ile `st.success` ve `st.download_button` gösterilir.
+    - [x] Başarısızlıkta `i18n["error_unsupported_file"]` veya benzeri ile `st.error` gösterilir; uygulama crash etmez.
+    - [x] Dönüşüm sırasında `st.spinner` ile kullanıcıya geri bildirim verilir.
 *   **Görevler:**
-    - [ ] `ui/dashboard.py` `render_main_area()` `tabs[0]` bloğuna dispatcher mantığını yaz (uzantı → hedef format listesi).
-    - [ ] `temp/` klasörüne güvenli yazma yardımcı fonksiyonu ekle (`_save_upload_to_temp(uploaded_file) -> str`).
-    - [ ] Her dönüşüm tipi için `FileConverter` çağrısını wrap eden ince bir router metot ekle (`_dispatch_conversion(input_path, target_format) -> bool`).
-    - [ ] `assets/languages.json`'a yeni anahtarlar: `btn_convert`, `btn_download`, `select_target_format`, `converting_in_progress` (hem TR hem EN).
-    - [ ] Geçici dosyaların temizlenmesi için `Path.unlink(missing_ok=True)` cleanup stratejisi.
+    - [x] `ui/dashboard.py` `render_main_area()` `tabs[0]` bloğuna dispatcher mantığını yaz (uzantı → hedef format listesi).
+    - [x] `temp/` klasörüne güvenli yazma yardımcı fonksiyonu ekle (`_save_upload_to_temp(uploaded_file) -> str`).
+    - [x] Her dönüşüm tipi için `FileConverter` çağrısını wrap eden ince bir router metot ekle (`_dispatch_conversion(input_path, target_format) -> bool`).
+    - [x] `assets/languages.json`'a yeni anahtarlar: `btn_convert`, `btn_download`, `select_target_format`, `converting_in_progress` (hem TR hem EN).
+    - [x] Geçici dosyaların temizlenmesi için `Path.unlink(missing_ok=True)` cleanup stratejisi.
 
 ### 🟠 Issue #12: `core/player.py` Refaktörü ve Eksik Audio Dönüşümleri
 *   **Sorumlu:** **Said Hamza Turan**
@@ -221,20 +221,20 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** `core/ai_engine.py` içindeki placeholder metotları gerçek Gemini API çağrılarıyla değiştirmek; özet, Q&A, anahtar kelime çıkarma ve sadeleştirme metotlarını eklemek; API key yokluğu / quota / network hatalarını graceful handle etmek.
 *   **User Story:** _"Bir kullanıcı olarak, yüklediğim metin tabanlı dosyanın AI tarafından özetlenmesini, içeriği hakkında doğal dilde soru sorabilmeyi ve anahtar kelimelerini görmeyi istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] `AIEngine.summarize(text: str, length: str = "medium") -> str` gerçek Gemini çağrısı yapar; `length ∈ {"short", "medium", "long"}`.
-    - [ ] `AIEngine.answer_question(context: str, question: str) -> str` doğrudan context-feeding (RAG değil) ile çalışır.
-    - [ ] `AIEngine.extract_keywords(text: str, top_k: int = 10) -> list[str]` çalışır.
-    - [ ] `AIEngine.simplify(text: str, level: str = "intermediate") -> str` çalışır (`basic | intermediate | advanced`).
-    - [ ] `Config.GEMINI_API_KEY` `None` veya boşsa metotlar `RuntimeError` fırlatmaz; `i18n["error_api_key_missing"]` döner.
-    - [ ] Network/quota/API hataları `try/except`'le yakalanır, logging.error + kullanıcı dostu string döner.
-    - [ ] System prompt projeye özel hazırlanır (Türkçe/İngilizce çıktı dil yönetimi dahil).
-    - [ ] Tek bir `_call_gemini(prompt: str, system: str | None = None) -> str` private helper tüm metotlar tarafından kullanılır (DRY).
+    - [x] `AIEngine.summarize(text: str, length: str = "medium") -> str` gerçek Gemini çağrısı yapar; `length ∈ {"short", "medium", "long"}`.
+    - [x] `AIEngine.answer_question(context: str, question: str) -> str` doğrudan context-feeding (RAG değil) ile çalışır.
+    - [x] `AIEngine.extract_keywords(text: str, top_k: int = 10) -> list[str]` çalışır.
+    - [x] `AIEngine.simplify(text: str, level: str = "intermediate") -> str` çalışır (`basic | intermediate | advanced`).
+    - [x] `Config.GEMINI_API_KEY` `None` veya boşsa metotlar `RuntimeError` fırlatmaz; `i18n["error_api_key_missing"]` döner.
+    - [x] Network/quota/API hataları `try/except`'le yakalanır, logging.error + kullanıcı dostu string döner.
+    - [x] System prompt projeye özel hazırlanır (Türkçe/İngilizce çıktı dil yönetimi dahil).
+    - [x] Tek bir `_call_gemini(prompt: str, system: str | None = None) -> str` private helper tüm metotlar tarafından kullanılır (DRY).
 *   **Görevler:**
     - [ ] `requirements.txt`'ye `google-generativeai~=<sürüm>` ekle (Ali ile koordineli).
-    - [ ] `_call_gemini` helper'ını yaz; model: `gemini-1.5-flash` (cost-efficient).
-    - [ ] 4 public metodu implement et + docstring + tip ipuçları.
-    - [ ] System prompt'ları modül seviyesinde sabit olarak tanımla (`_SYSTEM_PROMPTS: dict[str, str]`).
-    - [ ] `tests/test_ai_engine.py` taslağı: `monkeypatch` ile `_call_gemini` mock'u → public metotların doğru parametreyi geçirdiğini test et.
+    - [x] `_call_gemini` helper'ını yaz; model: `gemini-1.5-flash` (cost-efficient).
+    - [x] 4 public metodu implement et + docstring + tip ipuçları.
+    - [x] System prompt'ları modül seviyesinde sabit olarak tanımla (`_SYSTEM_PROMPTS: dict[str, str]`).
+    - [x] `tests/test_ai_engine.py` taslağı: `monkeypatch` ile `_call_gemini` mock'u → public metotların doğru parametreyi geçirdiğini test et.
 
 ### 🟠 Issue #17: Toplu Dönüşüm + PDF Sayfa Çıkarma + PDF Birleştirme
 *   **Sorumlu:** **Said Hamza Turan**
