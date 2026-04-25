@@ -201,8 +201,20 @@ def apply_custom_css():
 
         [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
             color: var(--brand-accent) !important;
-            border-bottom-color: var(--brand-accent) !important;
-            box-shadow: 0 3px 0 var(--brand-accent) inset !important;
+            border-bottom: 3px solid transparent !important;
+            border-image: linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) 1 !important;
+        }
+
+        /* Uyarılar (Alerts & Toasts) - Başarı ve Hata Varyantları */
+        [data-testid="stAlert"] {
+            border-radius: var(--radius) !important;
+            font-weight: 500 !important;
+            border: 1px solid var(--border) !important;
+        }
+        
+        [data-testid="stAlert"]:has([data-testid="stMarkdownContainer"]) {
+            /* General styling for alerts */
+            background-color: var(--bg-surface-2) !important;
         }
 
         /* Sidebar öğeleri */

@@ -214,6 +214,17 @@ class Dashboard:
         ]
         st.session_state.file_history.append(file_info)
 
+    @staticmethod
+    def notify_success(msg: str):
+        """Merkezi başarı bildirim helper'ı."""
+        st.toast(f"✅ {msg}")
+        st.success(msg)
+
+    @staticmethod
+    def notify_error(msg: str):
+        """Merkezi hata bildirim helper'ı."""
+        st.error(msg, icon="🚨")
+
     # ------------------------------------------------------------------
     # Converter yardımcı metotları
     # ------------------------------------------------------------------
@@ -306,7 +317,7 @@ class Dashboard:
                     )
 
                     if st.button(self.texts.get("btn_convert", "Dönüştür"), type="primary"):
-                        with st.spinner(self.texts.get("converting_in_progress", "Dönüştürülüyor...")):
+                        with st.spinner(self.texts.get("loading_converting", "Dönüştürülüyor...")):
                             input_path = self._save_upload_to_temp(uploaded)
                             output_name = os.path.splitext(uploaded.name)[0] + f".{target}"
                             output_path = os.path.join("temp", output_name)
@@ -316,7 +327,7 @@ class Dashboard:
                             )
 
                             if success:
-                                st.success(self.texts.get("success_conversion", "Başarılı!"))
+                                self.notify_success(self.texts.get("success_conversion", "Başarılı!"))
                                 with open(output_path, "rb") as f:
                                     output_data = f.read()
                                 st.download_button(
@@ -327,7 +338,7 @@ class Dashboard:
                                 # Geçici çıktı dosyasını temizle
                                 Path(output_path).unlink(missing_ok=True)
                             else:
-                                st.error(self.texts.get("error_unsupported_file", "Dönüştürme başarısız."))
+                                self.notify_error(self.texts.get("error_unsupported_file", "Dönüştürme başarısız."))
 
                             # Geçici girdi dosyasını temizle
                             Path(input_path).unlink(missing_ok=True)
