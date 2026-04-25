@@ -74,7 +74,7 @@ class Dashboard:
             st.divider()
 
             # --- Dil Seçimi ---
-            st.markdown("**🌐 Dil / Language**")
+            st.markdown(f"**{self.texts.get('sidebar_language', '🌐 Dil / Language')}**")
             lang_display = {"tr": "Türkçe 🇹🇷", "en": "English 🇺🇸"}
             current_index = 0 if st.session_state.language == "tr" else 1
             selected_lang_name = st.selectbox(
@@ -93,7 +93,7 @@ class Dashboard:
             st.divider()
 
             # --- Navigasyon ---
-            st.markdown("**📊 Navigasyon**")
+            st.markdown(f"**{self.texts.get('sidebar_navigation', '📊 Navigasyon')}**")
             nav_options = [
                 self.texts.get("convert_tab", "Dönüştür"),
                 self.texts.get("view_tab", "Görüntüle"),
@@ -117,7 +117,7 @@ class Dashboard:
             st.divider()
 
             # --- Dosya Yükleme ---
-            st.markdown("**📁 Dosya Yükleme**")
+            st.markdown(f"**{self.texts.get('sidebar_upload', '📁 Dosya Yükleme')}**")
             supported = [ext.replace(".", "") for ext in Config.SUPPORTED_EXTENSIONS]
             
             uploaded_file = st.file_uploader(
@@ -135,14 +135,14 @@ class Dashboard:
             st.divider()
 
             # --- Dosya Geçmişi ---
-            st.markdown("**⏱️ Dosya Geçmişi**")
+            st.markdown(f"**{self.texts.get('sidebar_history', '⏱️ Dosya Geçmişi')}**")
             if "file_history" not in st.session_state:
                 st.session_state.file_history = []
 
             history = st.session_state.file_history
             if history:
                 st.markdown(f"<div style='font-size: 12px; color: rgba(242, 247, 255, 0.6);'>"
-                            f"{len(history)} dosya</div>", unsafe_allow_html=True)
+                            f"{len(history)} {self.texts.get('history_files_count', 'dosya')}</div>", unsafe_allow_html=True)
                 for idx, file_info in enumerate(reversed(history[-5:])):  # Son 5 dosyayı göster
                     st.markdown(f"""
                     <div style='
@@ -161,16 +161,39 @@ class Dashboard:
                     </div>
                     """, unsafe_allow_html=True)
             else:
-                st.markdown("<div style='color: rgba(242, 247, 255, 0.4); font-size: 12px;'>"
-                           "Henüz dosya yüklenmedi</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='color: rgba(242, 247, 255, 0.4); font-size: 12px;'>"
+                           f"{self.texts.get('history_empty', 'Henüz dosya yüklenmedi')}</div>", unsafe_allow_html=True)
 
             st.divider()
 
             # --- Ayarlar ---
-            with st.expander("⚙️ Ayarlar"):
-                st.markdown("**Tema**")
-                st.selectbox("Tema seçin", ["Koyu", "Açık"], disabled=True, label_visibility="collapsed")
-                st.markdown("**Hakkında**")
+            with st.expander(self.texts.get("sidebar_settings", "⚙️ Ayarlar")):
+                st.markdown(f"**{self.texts.get('settings_theme', 'Tema')}**")
+                st.selectbox(
+                    "Tema seçin", 
+                    [self.texts.get("settings_theme_dark", "Koyu"), self.texts.get("settings_theme_light", "Açık")], 
+                    disabled=True, 
+                    label_visibility="collapsed",
+                    help=self.texts.get("settings_theme_tooltip", "Açık tema Sprint 5'te gelecek")
+                )
+                
+                st.markdown(f"**{self.texts.get('settings_default_quality', 'Varsayılan Görsel Kalitesi')}**")
+                if "default_quality" not in st.session_state:
+                    st.session_state.default_quality = 100
+                st.slider(
+                    "Kalite", 
+                    min_value=1, 
+                    max_value=100, 
+                    key="default_quality",
+                    label_visibility="collapsed"
+                )
+
+                if st.session_state.get("file_history"):
+                    if st.button(self.texts.get("settings_clear_history", "Geçmişi Temizle")):
+                        st.session_state.file_history = []
+                        st.rerun()
+
+                st.markdown(f"**{self.texts.get('settings_about', 'Hakkında')}**")
                 st.markdown(f"v{Config.VERSION}")
 
     def _add_to_file_history(self, filename):
@@ -232,7 +255,8 @@ class Dashboard:
         # Görsel dönüşümleri
         image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
         if source in image_exts and target in {"jpg", "jpeg", "png", "webp", "bmp"}:
-            return fc.convert_image(input_path, output_path, target)
+            quality = st.session_state.get("default_quality", 100)
+            return fc.convert_image(input_path, output_path, target, quality=quality)
 
         # Ses dönüşümleri
         audio_exts = {".mp3", ".wav", ".ogg", ".flac"}

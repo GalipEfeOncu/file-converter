@@ -35,7 +35,21 @@
         "selected_file": "Secili Dosya",
         "no_conversion_available": "Bu dosya turu icin donusturme destegi bulunmuyor.",
         "error_api_key_missing": "API anahtari yapilandirilmamis. Lutfen .env dosyasinda GEMINI_API_KEY degerini ayarlayin.",
-        "error_ai_request_failed": "AI istegi basarisiz oldu. Lutfen tekrar deneyin."
+        "error_ai_request_failed": "AI istegi basarisiz oldu. Lutfen tekrar deneyin.",
+        "sidebar_language": "🌐 Dil / Language",
+        "sidebar_navigation": "📊 Navigasyon",
+        "sidebar_upload": "📁 Dosya Yukleme",
+        "sidebar_history": "⏱️ Dosya Gecmisi",
+        "sidebar_settings": "⚙️ Ayarlar",
+        "history_empty": "Henuz dosya yuklenmedi",
+        "history_files_count": "dosya",
+        "settings_theme": "Tema",
+        "settings_theme_dark": "Koyu",
+        "settings_theme_light": "Acik",
+        "settings_theme_tooltip": "Acik tema Sprint 5'te gelecek",
+        "settings_default_quality": "Varsayilan Gorsel Kalitesi",
+        "settings_clear_history": "Gecmisi Temizle",
+        "settings_about": "Hakkinda"
     },
     "en": {
         "__UI_HEADER__": "---------- GENERAL UI ----------",
@@ -62,6 +76,20 @@
         "selected_file": "Selected File",
         "no_conversion_available": "No conversion options available for this file type.",
         "error_api_key_missing": "API key is not configured. Please set GEMINI_API_KEY in the .env file.",
-        "error_ai_request_failed": "AI request failed. Please try again."
+        "error_ai_request_failed": "AI request failed. Please try again.",
+        "sidebar_language": "🌐 Language",
+        "sidebar_navigation": "📊 Navigation",
+        "sidebar_upload": "📁 File Upload",
+        "sidebar_history": "⏱️ File History",
+        "sidebar_settings": "⚙️ Settings",
+        "history_empty": "No file uploaded yet",
+        "history_files_count": "files",
+        "settings_theme": "Theme",
+        "settings_theme_dark": "Dark",
+        "settings_theme_light": "Light",
+        "settings_theme_tooltip": "Light theme will be available in Sprint 5",
+        "settings_default_quality": "Default Image Quality",
+        "settings_clear_history": "Clear History",
+        "settings_about": "About"
     }
 }
