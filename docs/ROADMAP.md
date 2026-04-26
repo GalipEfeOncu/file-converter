@@ -1,6 +1,6 @@
 # 🗺 Universal File Workstation: 6 Haftalık Geliştirme Yol Haritası
 
-> **Son Güncelleme:** 2026-04-21
+> **Son Güncelleme:** 2026-04-25
 > 💡 Hızlı oryantasyon için `docs/AGENT_GUIDE.md` (modeller/yeni gelen geliştiriciler için tek dosyalık özet) öncelikli okumadır.
 
 ---
@@ -106,7 +106,7 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
     - [x] `ui/dashboard.py` içindeki `render_main_area()` kısmında `st.tabs` kullanarak (Dönüştür, Görüntüle, AI) sekmelerini asıl yerine oturt.
     - [x] Ana ekrandaki dosya yükleyici (`st.file_uploader`) kısmına CSS ekleyerek daha estetik bir sürükle-bırak kutusu görünümü ver (`ui/styles.py` `[data-testid="stFileUploadDropzone"]`).
     - [x] Galip Efe ile eş zamanlı çalışarak tasarımlarının `main.py` içerisine import edilmesini sağla (`from ui.dashboard import Dashboard`).
-    - [ ] Sidebar'daki hardcoded Türkçe etiketleri (`🌐 Dil / Language`, `📊 Navigasyon`, `📁 Dosya Yükleme`, `⏱️ Dosya Geçmişi`, `⚙️ Ayarlar`) `assets/languages.json`'a taşı. (TODO)
+    - [x] Sidebar'daki hardcoded Türkçe etiketleri (`🌐 Dil / Language`, `📊 Navigasyon`, `📁 Dosya Yükleme`, `⏱️ Dosya Geçmişi`, `⚙️ Ayarlar`) `assets/languages.json`'a taşı. ✅ (Issue #14 kapsamında tamamlandı)
 
 ### 🟢 Issue #10: Modül Entegrasyon Testleri ve Kalite Güvencesi
 *   **Sorumlu:** **Muhammed Ali Avcı**
@@ -182,16 +182,16 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** `ui/dashboard.py`'deki tüm hardcoded Türkçe sidebar etiketlerini (`🌐 Dil / Language`, `📊 Navigasyon`, `📁 Dosya Yükleme`, `⏱️ Dosya Geçmişi`, `⚙️ Ayarlar`, "Henüz dosya yüklenmedi") `assets/languages.json`'dan çekecek şekilde refaktör etmek; Ayarlar expander'ına işlevsel öğeler eklemek.
 *   **User Story:** _"İngilizce kullanıcı olarak, sidebar'daki tüm metinlerin de İngilizceye çevrilmesini; Ayarlar bölümünün gerçek seçenekler (varsayılan kalite, otomatik temizleme süresi vb.) sunmasını istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] Sidebar'daki **hiçbir kullanıcıya görünür string hardcoded değil**; tümü `texts.get()` ile çağrılır.
-    - [ ] Yeni i18n anahtarları (TR + EN): `sidebar_language`, `sidebar_navigation`, `sidebar_upload`, `sidebar_history`, `sidebar_settings`, `history_empty`, `history_files_count`, `settings_theme`, `settings_about`, `settings_default_quality`, `settings_clear_history`.
-    - [ ] Ayarlar expander'ında: (a) varsayılan görsel kalite slider'ı (`st.slider`, 1-100, default 100, `st.session_state.default_quality`), (b) "Geçmişi Temizle" butonu (`st.button` → `file_history = []`), (c) versiyon bilgisi.
-    - [ ] Tema seçici hâlâ `disabled=True` olabilir ama tooltip ile "Açık tema Sprint 5'te gelecek" notu göster.
-    - [ ] Dil değiştirildiğinde sidebar'daki tüm metinler anında güncellenir (`st.rerun()` zaten mevcut).
+    - [x] Sidebar'daki **hiçbir kullanıcıya görünür string hardcoded değil**; tümü `texts.get()` ile çağrılır.
+    - [x] Yeni i18n anahtarları (TR + EN): `sidebar_language`, `sidebar_navigation`, `sidebar_upload`, `sidebar_history`, `sidebar_settings`, `history_empty`, `history_files_count`, `settings_theme`, `settings_about`, `settings_default_quality`, `settings_clear_history`.
+    - [x] Ayarlar expander'ında: (a) varsayılan görsel kalite slider'ı (`st.slider`, 1-100, default 100, `st.session_state.default_quality`), (b) "Geçmişi Temizle" butonu (`st.button` → `file_history = []`), (c) versiyon bilgisi.
+    - [x] Tema seçici hâlâ `disabled=True` olabilir ama tooltip ile "Açık tema Sprint 5'te gelecek" notu göster.
+    - [x] Dil değiştirildiğinde sidebar'daki tüm metinler anında güncellenir (`st.rerun()` zaten mevcut).
 *   **Görevler:**
-    - [ ] `assets/languages.json` yeni anahtarları ekle (Ali ile koordineli).
-    - [ ] `ui/dashboard.py` `render_sidebar()` içindeki tüm `st.markdown("**...**")` çağrılarını `texts.get()` ile değiştir.
-    - [ ] `_add_to_file_history` davranışı korunur; "Geçmişi Temizle" butonu yalnızca `file_history` doluysa gösterilir.
-    - [ ] `settings_default_quality` slider'ı `Issue #11` Convert sekmesindeki `convert_image` çağrısı için varsayılan değer olarak okunur (Galip Efe ile koordinasyon).
+    - [x] `assets/languages.json` yeni anahtarları ekle (Ali ile koordineli).
+    - [x] `ui/dashboard.py` `render_sidebar()` içindeki tüm `st.markdown("**...**")` çağrılarını `texts.get()` ile değiştir.
+    - [x] `_add_to_file_history` davranışı korunur; "Geçmişi Temizle" butonu yalnızca `file_history` doluysa gösterilir.
+    - [x] `settings_default_quality` slider'ı `Issue #11` Convert sekmesindeki `convert_image` çağrısı için varsayılan değer olarak okunur (Galip Efe ile koordinasyon).
 
 ### 🟢 Issue #15: Eksik Bağımlılık + Smoke Test + Yeni i18n Paritesi
 *   **Sorumlu:** **Muhammed Ali Avcı**
@@ -275,17 +275,17 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** Tüm uzun süren operasyonlara (`convert_*`, `display_pdf`, AI çağrıları) tutarlı `st.spinner` + `st.toast` deneyimi getirmek; tab başlıklarını CSS ile daha belirgin hale getirmek; başarı/hata renklerini design token'lara bağlamak.
 *   **User Story:** _"Bir kullanıcı olarak, herhangi bir işlem 1 saniyeden uzun sürdüğünde 'çalışıyor' geri bildirimini görmek; başarı durumunda kısa bir toast almak; hata mesajlarının ekranda kaybolmadan kalmasını istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] Tüm `FileConverter` ve `AIEngine` çağrıları `st.spinner(texts.get("loading_<context>"))` ile sarılır.
-    - [ ] Başarı bildirimleri için merkezi helper: `notify_success(msg: str)` → hem `st.toast` hem `st.success`.
-    - [ ] Hata bildirimleri kalıcı (`st.error` her zaman gösterilir).
-    - [ ] `ui/styles.py`'ye yeni CSS: `[data-testid="stAlert"]` için brand renklere uygun başarı/hata varyantları.
-    - [ ] Tab başlıklarına emoji + bold + alt çizgi gradient: zaten var olan stiller iyileştirilir, hover transition'ı 200ms'ye düşürülür.
-    - [ ] Yeni i18n anahtarları: `loading_converting`, `loading_rendering`, `loading_ai_processing`, `notify_success_default`.
+    - [x] Tüm `FileConverter` ve `AIEngine` çağrıları `st.spinner(texts.get("loading_<context>"))` ile sarılır.
+    - [x] Başarı bildirimleri için merkezi helper: `notify_success(msg: str)` → hem `st.toast` hem `st.success`.
+    - [x] Hata bildirimleri kalıcı (`st.error` her zaman gösterilir).
+    - [x] `ui/styles.py`'ye yeni CSS: `[data-testid="stAlert"]` için brand renklere uygun başarı/hata varyantları.
+    - [x] Tab başlıklarına emoji + bold + alt çizgi gradient: zaten var olan stiller iyileştirilir, hover transition'ı 200ms'ye düşürülür.
+    - [x] Yeni i18n anahtarları: `loading_converting`, `loading_rendering`, `loading_ai_processing`, `notify_success_default`.
 *   **Görevler:**
-    - [ ] `ui/dashboard.py`'ye `notify_success` / `notify_error` helper'ları ekle (modül seviyesi fonksiyon olabilir).
-    - [ ] Tüm tab handler'larını helper'ları kullanacak şekilde refaktör et.
-    - [ ] CSS güncellemeleri.
-    - [ ] Galip Efe / Said / Abdulkadir ile çakışmamak için Sprint sonunda merge sırası planla (Samet → diğerlerinin PR'ları sonrası).
+    - [x] `ui/dashboard.py`'ye `notify_success` / `notify_error` helper'ları ekle (modül seviyesi fonksiyon olabilir).
+    - [x] Tüm tab handler'larını helper'ları kullanacak şekilde refaktör et.
+    - [x] CSS güncellemeleri.
+    - [x] Galip Efe / Said / Abdulkadir ile çakışmamak için Sprint sonunda merge sırası planla (Samet → diğerlerinin PR'ları sonrası).
 
 ### 🟢 Issue #20: AI ve Yeni Converter Metotları için Unit Testler
 *   **Sorumlu:** **Muhammed Ali Avcı**
@@ -349,18 +349,18 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** `ui/styles.py`'ye **light theme** varyantı eklemek (CSS değişkenlerini override eden ikinci bir blok); küçük ekranlarda sidebar collapse davranışı iyileştirmesi; tab geçişlerine fade-in animasyonu.
 *   **User Story:** _"Bir kullanıcı olarak, gündüz açık temada, gece koyu temada çalışmak; küçük laptop ekranımda sidebar'ın okunabilir kalmasını istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] `apply_custom_css(theme: str = "dark")` parametre alır; `theme="light"` için `:root` değişkenleri override eden ikinci CSS bloğu enjekte edilir.
-    - [ ] Açık tema için palet: `--bg-base: #f7f9fc`, `--text-primary: #0b1220` vb. tutarlı tasarımla.
-    - [ ] Sidebar 768px altında otomatik collapse'a uygun; içerik en az 320px width'te bozulmadan render olur.
-    - [ ] Tab geçişlerine `transition: opacity 200ms ease` ile fade-in.
-    - [ ] Buton hover lift efekti açık temada da iyi görünür (gölge rengi tema-aware).
-    - [ ] Galip Efe'nin `Config.load_user_prefs()` ile entegre — `theme` `prefs.json`'dan okunur.
+    - [x] `apply_custom_css(theme: str = "dark")` parametre alır; `theme="light"` için `:root` değişkenleri override eden ikinci CSS bloğu enjekte edilir.
+    - [x] Açık tema için palet: `--bg-base: #f7f9fc`, `--text-primary: #0b1220` vb. tutarlı tasarımla.
+    - [x] Sidebar 768px altında otomatik collapse'a uygun; içerik en az 320px width'te bozulmadan render olur.
+    - [x] Tab geçişlerine `transition: opacity 200ms ease` ile fade-in.
+    - [x] Buton hover lift efekti açık temada da iyi görünür (gölge rengi tema-aware).
+    - [x] Galip Efe'nin `Config.load_user_prefs()` ile entegre — `theme` `prefs.json`'dan okunur.
 *   **Görevler:**
-    - [ ] `apply_custom_css` parametre güncellemesi.
-    - [ ] Light theme CSS değişken bloğu.
-    - [ ] Tab fade-in transition CSS.
-    - [ ] Manuel responsive testi 320 / 768 / 1280 / 1920 px breakpoint'lerinde.
-    - [ ] `i18n` anahtarı: `settings_theme_light`, `settings_theme_dark`.
+    - [x] `apply_custom_css` parametre güncellemesi.
+    - [x] Light theme CSS değişken bloğu.
+    - [x] Tab fade-in transition CSS.
+    - [x] Manuel responsive testi 320 / 768 / 1280 / 1920 px breakpoint'lerinde.
+    - [x] `i18n` anahtarı: `settings_theme_light`, `settings_theme_dark`.
 
 ### 🔵 Issue #24: Görüntüleme Modülü Performans İyileştirmeleri (Lazy PDF Render + Pagination)
 *   **Sorumlu:** **Abdulkadir Sar**
