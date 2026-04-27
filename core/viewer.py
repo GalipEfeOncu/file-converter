@@ -1,5 +1,6 @@
+import logging
 import pandas as pd
-import fitz 
+import fitz
 import os
 import streamlit as st  # Arayüz bileşenleri için eklendi
 import docx             # Word dosyalarını okumak için eklendi
@@ -11,22 +12,22 @@ class FileViewer:
 
     def render_pdf(self, pdf_path: str):
         """PDF sayfalarını görsel olarak render eder."""
-        doc = fitz.open(pdf_path) 
+        doc = fitz.open(pdf_path)
         resim_listesi = []
-        
+
         for sayfa_numarasi in range(len(doc)):
             sayfa = doc.load_page(sayfa_numarasi)
-            resim_verisi = sayfa.get_pixmap() 
-            png_formati = resim_verisi.tobytes("png") 
+            resim_verisi = sayfa.get_pixmap()
+            png_formati = resim_verisi.tobytes("png")
             resim_listesi.append(png_formati)
-            
+
         return resim_listesi
 
     def read_table(self, file_path: str) -> pd.DataFrame:
         """CSV veya Excel dosyalarını DataFrame olarak okur."""
         dosya_adi, uzanti = os.path.splitext(file_path)
         uzanti = uzanti.lower()
-        
+
         try:
             if uzanti == '.csv':
                 return pd.read_csv(file_path)
@@ -34,7 +35,7 @@ class FileViewer:
                 return pd.read_excel(file_path)
             else:
                 raise ValueError("Desteklenmeyen dosya formatı! Lütfen .csv veya .xlsx yükleyin.")
-                
+
         except Exception as e:
             raise ValueError(f"Dosya okunurken bir hata oluştu: {e}")
 
@@ -72,8 +73,9 @@ class FileViewer:
         if uzanti == '.txt':
             with open(file_path, "r", encoding="utf-8") as f:
                 icerik = f.read()
+            # TODO(i18n): "Belge İçeriği" → document_content anahtarına taşınacak (Ali koordinasyonu)
             st.text_area("Belge İçeriği", icerik, height=400)
-            
+
         elif uzanti in ['.docx', '.doc']:
             try:
                 doc = docx.Document(file_path)
@@ -81,7 +83,25 @@ class FileViewer:
                 tam_metin = "\n\n".join([para.text for para in doc.paragraphs if para.text.strip()])
                 st.markdown(tam_metin)
             except Exception as e:
+                logging.error(f"Hata: Word dosyası okunurken hata oluştu ({file_path}): {e}")
                 st.error(f"Word dosyası okunurken hata oluştu: {e}")
         else:
+            # TODO(i18n): "Bu metin formatı desteklenmiyor." → error_text_format_unsupported anahtarına taşınacak
             st.warning("Bu metin formatı desteklenmiyor.")
+
+    def display_image(self, file_path: str) -> None:
+        """Görsel dosyaları Streamlit arayüzünde tam genişlikte gösterir.
+
+        Args:
+            file_path: Gösterilecek görsel dosyasının yolu (.png, .jpg, .jpeg, .webp, .bmp).
+        """
+        try:
+            st.image(file_path, use_container_width=True)
+            logging.info(f"Başarılı: Görsel gösterildi ({file_path})")
+        except FileNotFoundError:
+            logging.error(f"Hata: Görsel dosyası bulunamadı ({file_path})")
+            st.error(f"Dosya bulunamadı: {file_path}")
+        except Exception as e:
+            logging.error(f"Beklenmeyen Hata (display_image): {e}")
+            st.error(f"Görsel gösterilirken hata oluştu: {e}")
 

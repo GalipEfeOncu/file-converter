@@ -14,6 +14,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from config.settings import Config
+from core.viewer import FileViewer
 
 # ---------------------------------------------------------------------------
 # Dosya uzantısına göre desteklenen hedef formatlar
@@ -289,7 +290,72 @@ class Dashboard:
 
         return False
 
+    def _dispatch_viewer(self, uploaded_file) -> None:
+        """Yüklenen dosyanın uzantısına göre uygun FileViewer.display_* metodunu çağırır.
+
+        Desteklenen uzantı eşlemeleri:
+            .pdf            → display_pdf
+            .csv/.xls/.xlsx → display_table
+            .mp3/.wav/.ogg  → display_audio  (MIME tipi mimetypes ile belirlenir)
+            .mp4/.mov/.webm → display_video  (MIME tipi mimetypes ile belirlenir)
+            .png/.jpg/.jpeg/.webp/.bmp → display_image
+            .txt/.docx      → display_text_document
+        """
+        import mimetypes
+
+        ext = os.path.splitext(uploaded_file.name)[1].lower()
+
+        # Uzantı → metod eşlemesi
+        pdf_exts = {".pdf"}
+        table_exts = {".csv", ".xls", ".xlsx"}
+        audio_exts = {".mp3", ".wav", ".ogg", ".flac"}
+        video_exts = {".mp4", ".mov", ".webm"}
+        image_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
+        text_exts = {".txt", ".docx"}
+
+        fv = FileViewer()
+
+        # Dosyayı temp/'e yaz (tüm display_ metotları dosya yolu alır)
+        file_path = self._save_upload_to_temp(uploaded_file)
+
+        try:
+            if ext in pdf_exts:
+                with st.spinner(self.texts.get("loading_rendering", "Dosya görüntüye hazırlanıyor...")):
+                    fv.display_pdf(file_path)
+
+            elif ext in table_exts:
+                with st.spinner(self.texts.get("loading_rendering", "Dosya görüntüye hazırlanıyor...")):
+                    fv.display_table(file_path)
+
+            elif ext in audio_exts:
+                mime_type, _ = mimetypes.guess_type(uploaded_file.name)
+                audio_format = mime_type if mime_type else "audio/mp3"
+                fv.display_audio(file_path, format=audio_format)
+
+            elif ext in video_exts:
+                mime_type, _ = mimetypes.guess_type(uploaded_file.name)
+                video_format = mime_type if mime_type else "video/mp4"
+                fv.display_video(file_path, format=video_format)
+
+            elif ext in image_exts:
+                fv.display_image(file_path)
+
+            elif ext in text_exts:
+                with st.spinner(self.texts.get("loading_rendering", "Dosya görüntüye hazırlanıyor...")):
+                    fv.display_text_document(file_path)
+
+            else:
+                st.warning(
+                    self.texts.get("error_unsupported_file", "Desteklenmeyen dosya türü."),
+                    icon="⚠️"
+                )
+        finally:
+            # Geçici dosyayı temizle
+            from pathlib import Path as _Path
+            _Path(file_path).unlink(missing_ok=True)
+
     def render_main_area(self):
+
         """
         Ana içerik alanını st.tabs ile kurgular.
         Samet Demir — Modern tab sistemi (Dönüştür, Görüntüle, AI) entegrasyonu.
@@ -362,10 +428,12 @@ class Dashboard:
         with tabs[1]:  # Görüntüle
             st.header(f"👁️ {tab_names[1]}")
             if st.session_state.uploaded_file:
-                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
-                st.info(self.texts.get("status_architecture_in_progress", "Görüntüleme modülü yükleniyor..."), icon="ℹ️")
+                uploaded = st.session_state.uploaded_file
+                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {uploaded.name}")
+                self._dispatch_viewer(uploaded)
             else:
                 st.info(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="ℹ️")
+
 
         with tabs[2]:  # AI Analizi
             st.header(f"🤖 {tab_names[2]}")
