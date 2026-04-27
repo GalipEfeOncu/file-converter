@@ -308,10 +308,15 @@ class Dashboard:
         # Uzantı → metod eşlemesi
         pdf_exts = {".pdf"}
         table_exts = {".csv", ".xls", ".xlsx"}
-        audio_exts = {".mp3", ".wav", ".ogg", ".flac"}
+        audio_exts = {".mp3", ".wav", ".ogg", ".flac", ".m4a"}  # m4a eklendi
         video_exts = {".mp4", ".mov", ".webm"}
-        image_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
-        text_exts = {".txt", ".docx"}
+        image_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}  # SVG st.image desteklemez, kasıtlı dışarıda
+        # Kod ve düz metin dosyaları: display_text_document UTF-8 olarak okur
+        text_exts = {
+            ".txt", ".docx", ".doc", ".rtf", ".odt",  # belgeler
+            ".py", ".js", ".html", ".css", ".java",    # kod
+            ".cpp", ".sql", ".yaml", ".json", ".xml",   # kod / veri
+        }
 
         fv = FileViewer()
 

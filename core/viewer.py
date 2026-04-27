@@ -66,28 +66,54 @@ class FileViewer:
             st.video(f.read(), format=format)
 
     def display_text_document(self, file_path: str):
-        """TXT ve DOCX içeriklerini okuyup arayüzde metin olarak basar."""
+        """TXT, DOCX ve kod/veri metin dosyalarını okuyup arayüzde gösterir.
+
+        Desteklenen uzantılar:
+            .txt, .py, .js, .html, .css, .java, .cpp, .sql,
+            .yaml, .json, .xml  → UTF-8 düz metin, st.code ile gösterilir
+            .docx, .doc         → python-docx ile st.markdown
+            .rtf, .odt          → düz metin olarak okunmaya çalışılır
+        """
         dosya_adi, uzanti = os.path.splitext(file_path)
         uzanti = uzanti.lower()
 
-        if uzanti == '.txt':
-            with open(file_path, "r", encoding="utf-8") as f:
-                icerik = f.read()
-            # TODO(i18n): "Belge İçeriği" → document_content anahtarına taşınacak (Ali koordinasyonu)
-            st.text_area("Belge İçeriği", icerik, height=400)
-
-        elif uzanti in ['.docx', '.doc']:
+        # --- DOCX / DOC: python-docx ile paragraf çıkar ---
+        if uzanti in ['.docx', '.doc']:
             try:
                 doc = docx.Document(file_path)
-                # Word'deki tüm paragrafları alt alta birleştirir
                 tam_metin = "\n\n".join([para.text for para in doc.paragraphs if para.text.strip()])
                 st.markdown(tam_metin)
             except Exception as e:
                 logging.error(f"Hata: Word dosyası okunurken hata oluştu ({file_path}): {e}")
                 st.error(f"Word dosyası okunurken hata oluştu: {e}")
+
+        # --- TXT: basit metin alanı ---
+        elif uzanti == '.txt':
+            with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                icerik = f.read()
+            # TODO(i18n): "Belge İçeriği" → document_content anahtarına taşınacak (Ali koordinasyonu)
+            st.text_area("Belge İçeriği", icerik, height=400)
+
+        # --- Kod ve veri dosyaları: syntax highlighting ile st.code ---
         else:
-            # TODO(i18n): "Bu metin formatı desteklenmiyor." → error_text_format_unsupported anahtarına taşınacak
-            st.warning("Bu metin formatı desteklenmiyor.")
+            # Uzantıya göre dil adını belirle (Streamlit st.code için)
+            _lang_map = {
+                ".py": "python", ".js": "javascript", ".html": "html",
+                ".css": "css", ".java": "java", ".cpp": "cpp",
+                ".sql": "sql", ".yaml": "yaml", ".json": "json",
+                ".xml": "xml", ".rtf": "text", ".odt": "text",
+            }
+            lang = _lang_map.get(uzanti, "text")
+            try:
+                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                    icerik = f.read()
+                logging.info(f"Başarılı: Metin dosyası gösterildi ({file_path})")
+                st.code(icerik, language=lang)
+            except Exception as e:
+                logging.error(f"Hata: Metin dosyası okunurken hata oluştu ({file_path}): {e}")
+                st.error(f"Dosya okunurken hata oluştu: {e}")
+
+
 
     def display_image(self, file_path: str) -> None:
         """Görsel dosyaları Streamlit arayüzünde tam genişlikte gösterir.

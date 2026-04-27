@@ -1,12 +1,12 @@
 """
-tests/test_viewer.py — FileViewer.display_image ve _dispatch_viewer testleri
-Issue #13 — Abdulkadir Sar (Aksar712)
+tests/test_viewer.py — FileViewer display_* metotları ve _dispatch_viewer testleri
+Issue #13 + Issue #8 — Abdulkadir Sar (Aksar712)
 
 Kapsam:
   - display_image başarılı senaryo (st.image çağrısını doğrular)
   - display_image eksik dosya senaryosu (exception fırlatmaz)
-  - _dispatch_viewer görsel uzantısını doğru metoda yönlendirir
-  - _dispatch_viewer desteklenmeyen uzantı için st.warning çağrısı
+  - display_text_document: .txt, .py (kod), .docx başarı ve hata senaryoları
+  - _dispatch_viewer: görsel, ses, metin ve desteklenmeyen uzantı yönlendirmeleri
 """
 
 import sys
@@ -132,3 +132,95 @@ class TestDispatchViewer:
         mock_warning.assert_called_once()
         # Uyarı mesajı i18n'den gelmeli
         assert "Desteklenmeyen" in mock_warning.call_args[0][0]
+
+    def test_dispatch_viewer_routes_audio_to_display_audio(self, tmp_path: Path):
+        """Başarılı senaryo: .mp3 uzantısı display_audio'ya yönlendirilmeli."""
+        from ui.dashboard import Dashboard
+
+        texts = {}
+        dash = Dashboard(texts)
+        uploaded = self._make_uploaded_file("song.mp3", b"\xff\xfb")
+        fake_path = str(tmp_path / "song.mp3")
+
+        mock_fv = MagicMock()
+        mock_fv_class = MagicMock(return_value=mock_fv)
+
+        with (
+            patch.object(Dashboard, "_save_upload_to_temp", return_value=fake_path),
+            patch("ui.dashboard.FileViewer", mock_fv_class),
+            patch("pathlib.Path.unlink"),
+        ):
+            dash._dispatch_viewer(uploaded)
+
+        assert mock_fv.display_audio.called, "display_audio çağrılmalıydı."
+
+    def test_dispatch_viewer_routes_docx_to_display_text(self, tmp_path: Path):
+        """Başarılı senaryo: .docx uzantısı display_text_document'a yönlendirilmeli."""
+        from ui.dashboard import Dashboard
+
+        texts = {}
+        dash = Dashboard(texts)
+        uploaded = self._make_uploaded_file("report.docx", b"PK")
+        fake_path = str(tmp_path / "report.docx")
+
+        mock_fv = MagicMock()
+        mock_fv_class = MagicMock(return_value=mock_fv)
+
+        with (
+            patch.object(Dashboard, "_save_upload_to_temp", return_value=fake_path),
+            patch("ui.dashboard.FileViewer", mock_fv_class),
+            patch("pathlib.Path.unlink"),
+            patch("streamlit.spinner", return_value=MagicMock(__enter__=lambda s: s, __exit__=MagicMock(return_value=False))),
+        ):
+            dash._dispatch_viewer(uploaded)
+
+        assert mock_fv.display_text_document.called, "display_text_document çağrılmalıydı."
+
+
+# ===========================================================================
+# display_text_document testleri (Issue #8)
+# ===========================================================================
+
+class TestDisplayTextDocument:
+    """FileViewer.display_text_document genişletilmiş davranışı için testler."""
+
+    def test_display_txt_file_success(self, tmp_path: Path):
+        """Başarılı senaryo: .txt dosyası st.text_area ile gösterilmeli."""
+        from core.viewer import FileViewer
+
+        txt_file = tmp_path / "notes.txt"
+        txt_file.write_text("Merhaba Dünya", encoding="utf-8")
+
+        fv = FileViewer()
+        with patch("core.viewer.st.text_area") as mock_area:
+            fv.display_text_document(str(txt_file))
+            assert mock_area.called, "st.text_area çağrılmalıydı."
+            # İçerik doğru geçirilmeli
+            assert "Merhaba Dünya" in mock_area.call_args[0][1]
+
+    def test_display_python_file_uses_st_code(self, tmp_path: Path):
+        """Başarılı senaryo: .py dosyası st.code(language='python') ile gösterilmeli."""
+        from core.viewer import FileViewer
+
+        py_file = tmp_path / "script.py"
+        py_file.write_text("print('hello')", encoding="utf-8")
+
+        fv = FileViewer()
+        with patch("core.viewer.st.code") as mock_code:
+            fv.display_text_document(str(py_file))
+            mock_code.assert_called_once_with("print('hello')", language="python")
+
+    def test_display_text_document_read_error_does_not_raise(self, tmp_path: Path):
+        """Hata senaryosu: okuma hatası exception fırlatmamalı; st.error çağrılmalı."""
+        from core.viewer import FileViewer
+
+        py_file = tmp_path / "broken.py"
+        py_file.write_text("x = 1", encoding="utf-8")
+
+        fv = FileViewer()
+        with (
+            patch("builtins.open", side_effect=PermissionError("Erişim reddedildi")),
+            patch("core.viewer.st.error") as mock_error,
+        ):
+            fv.display_text_document(str(py_file))
+            assert mock_error.called, "Hata durumunda st.error çağrılmalıydı."
