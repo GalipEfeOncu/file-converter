@@ -224,3 +224,25 @@ class TestDisplayTextDocument:
         ):
             fv.display_text_document(str(py_file))
             assert mock_error.called, "Hata durumunda st.error çağrılmalıydı."
+
+    def test_extract_text_from_txt(self, tmp_path: Path):
+        """Başarılı senaryo: extract_text ile .txt dosyasından metin çıkarma."""
+        from core.viewer import FileViewer
+
+        txt_file = tmp_path / "sample.txt"
+        txt_file.write_text("Örnek Metin İçeriği", encoding="utf-8")
+
+        fv = FileViewer()
+        extracted = fv.extract_text(str(txt_file))
+        assert extracted == "Örnek Metin İçeriği", "Çıkarılan metin doğru olmalı."
+
+    def test_extract_text_unsupported_ext(self, tmp_path: Path):
+        """Hata senaryosu: desteklenmeyen uzantı için boş string döner."""
+        from core.viewer import FileViewer
+
+        unsupported_file = tmp_path / "image.png"
+        unsupported_file.write_bytes(MINIMAL_PNG)
+
+        fv = FileViewer()
+        extracted = fv.extract_text(str(unsupported_file))
+        assert extracted == "", "Desteklenmeyen dosya türünden metin çıkarılamamalı."

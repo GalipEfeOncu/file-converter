@@ -443,7 +443,78 @@ class Dashboard:
         with tabs[2]:  # AI Analizi
             st.header(f"🤖 {tab_names[2]}")
             if st.session_state.uploaded_file:
-                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
-                st.info(self.texts.get("status_architecture_in_progress", "AI analiz modülü yükleniyor..."), icon="ℹ️")
+                uploaded = st.session_state.uploaded_file
+                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {uploaded.name}")
+
+                ext = os.path.splitext(uploaded.name)[1].lower()
+                ai_supported_exts = {".pdf", ".docx", ".txt", ".csv", ".doc"}
+
+                if ext not in ai_supported_exts:
+                    st.info(self.texts.get("ai_unsupported_file_type", "Bu dosya türü AI analizini desteklemiyor. Lütfen PDF, DOCX, TXT veya CSV yükleyin."), icon="ℹ️")
+                else:
+                    file_path = self._save_upload_to_temp(uploaded)
+                    try:
+                        fv = FileViewer()
+                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                            text_content = fv.extract_text(file_path)
+
+                        if not text_content:
+                            st.warning("Dosyadan metin çıkarılamadı. AI analizi yapılamıyor.")
+                        else:
+                            from core.ai_engine import AIEngine
+                            ai = AIEngine()
+
+                            st.markdown("### AI İşlemleri")
+                            
+                            c1, c2 = st.columns(2)
+                            with c1:
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_summarize_btn", "Özetle"))
+                                    sum_length = st.radio(self.texts.get("ai_summary_length", "Özet Uzunluğu"), ["short", "medium", "long"], horizontal=True, key="rad_sum")
+                                    if st.button(self.texts.get("ai_summarize_btn", "Özetle"), key="btn_sum", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.summarize(text_content, length=sum_length)
+                                            st.session_state["ai_result"] = (self.texts.get("ai_summarize_btn", "Özetle"), res)
+                                            
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"))
+                                    if st.button(self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"), key="btn_kw", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.extract_keywords(text_content)
+                                            if not res:
+                                                st.session_state["ai_result"] = (self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"), "Anahtar kelime bulunamadı.")
+                                            else:
+                                                st.session_state["ai_result"] = (self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"), "\n".join([f"- {k}" for k in res]))
+
+                            with c2:
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_ask_btn", "Soru Sor"))
+                                    question = st.text_input(self.texts.get("ai_question_placeholder", "Sorunuz..."), key="ai_q")
+                                    if st.button(self.texts.get("ai_ask_btn", "Soru Sor"), key="btn_ask", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.answer_question(text_content, question)
+                                            st.session_state["ai_result"] = (self.texts.get("ai_ask_btn", "Soru Sor"), res)
+
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_simplify_btn", "Sadeleştir"))
+                                    simp_level = st.radio(self.texts.get("ai_simplify_level", "Sadeleştirme Seviyesi"), ["basic", "intermediate", "advanced"], horizontal=True, key="rad_simp")
+                                    if st.button(self.texts.get("ai_simplify_btn", "Sadeleştir"), key="btn_simp", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.simplify(text_content, level=simp_level)
+                                            st.session_state["ai_result"] = (self.texts.get("ai_simplify_btn", "Sadeleştir"), res)
+                                            
+                            if "ai_result" in st.session_state:
+                                title, content = st.session_state["ai_result"]
+                                if "API bağlantısı kurulamadı" in content or "AI isteği başarısız" in content or "google-generativeai" in content:
+                                    st.error(content)
+                                else:
+                                    with st.expander(title, expanded=True):
+                                        st.markdown(content)
+
+                    finally:
+                        from pathlib import Path as _Path
+                        _Path(file_path).unlink(missing_ok=True)
+                        
             else:
                 st.info(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="ℹ️")
+

@@ -131,3 +131,27 @@ class FileViewer:
             logging.error(f"Beklenmeyen Hata (display_image): {e}")
             st.error(f"Görsel gösterilirken hata oluştu: {e}")
 
+    def extract_text(self, file_path: str) -> str:
+        """PDF, DOCX, TXT ve CSV dosyalarından AI analizi için saf metin çıkarır."""
+        dosya_adi, uzanti = os.path.splitext(file_path)
+        uzanti = uzanti.lower()
+        metin = ""
+
+        try:
+            if uzanti == '.pdf':
+                doc = fitz.open(file_path)
+                for page in doc:
+                    metin += page.get_text() + "\n"
+            elif uzanti in ['.docx', '.doc']:
+                doc = docx.Document(file_path)
+                metin = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
+            elif uzanti in ['.txt', '.csv']:
+                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                    metin = f.read()
+            else:
+                logging.warning(f"Desteklenmeyen dosya türü, metin çıkarılamadı: {uzanti}")
+        except Exception as e:
+            logging.error(f"Metin çıkarılırken hata oluştu ({file_path}): {e}")
+
+        return metin.strip()
+
