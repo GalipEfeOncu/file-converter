@@ -88,6 +88,13 @@ class Dashboard:
                 if value == selected_lang_name:
                     if st.session_state.language != key:
                         st.session_state.language = key
+                        if hasattr(Config, "save_user_prefs"):
+                            try:
+                                prefs = Config.load_user_prefs() if hasattr(Config, "load_user_prefs") else {}
+                                prefs["language"] = key
+                                Config.save_user_prefs(prefs)
+                            except Exception:
+                                pass
                         st.rerun()
 
             st.divider()
@@ -95,9 +102,9 @@ class Dashboard:
             # --- Navigasyon ---
             st.markdown(f"**{self.texts.get('sidebar_navigation', '📊 Navigasyon')}**")
             nav_options = [
-                self.texts.get("convert_tab", "Dönüştür"),
-                self.texts.get("view_tab", "Görüntüle"),
-                self.texts.get("ai_tab", "AI Analizi")
+                f"🔄 {self.texts.get('convert_tab', 'Dönüştür')}",
+                f"👁️ {self.texts.get('view_tab', 'Görüntüle')}",
+                f"🤖 {self.texts.get('ai_tab', 'AI Analizi')}"
             ]
 
             if st.session_state.get("active_tab") not in nav_options:
@@ -187,6 +194,13 @@ class Dashboard:
                     if value == selected_theme_name:
                         if st.session_state.theme != key:
                             st.session_state.theme = key
+                            if hasattr(Config, "save_user_prefs"):
+                                try:
+                                    prefs = Config.load_user_prefs() if hasattr(Config, "load_user_prefs") else {}
+                                    prefs["theme"] = key
+                                    Config.save_user_prefs(prefs)
+                                except Exception:
+                                    pass
                             st.rerun()
                 
                 st.markdown(f"**{self.texts.get('settings_default_quality', 'Varsayılan Görsel Kalitesi')}**")
@@ -298,9 +312,9 @@ class Dashboard:
         
         # Sekmeleri oluştur
         tab_names = [
-            self.texts.get("convert_tab", "Dönüştür"),
-            self.texts.get("view_tab", "Görüntüle"),
-            self.texts.get("ai_tab", "AI Analizi")
+            f"🔄 {self.texts.get('convert_tab', 'Dönüştür')}",
+            f"👁️ {self.texts.get('view_tab', 'Görüntüle')}",
+            f"🤖 {self.texts.get('ai_tab', 'AI Analizi')}"
         ]
         
         # Active tabnın indeksini bul
@@ -313,7 +327,7 @@ class Dashboard:
         tabs = st.tabs(tab_names)
 
         with tabs[0]:  # Dönüştür
-            st.header(f"🔄 {tab_names[0]}")
+            st.header(tab_names[0])
             if st.session_state.uploaded_file:
                 uploaded = st.session_state.uploaded_file
                 st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {uploaded.name}")
@@ -360,7 +374,7 @@ class Dashboard:
                 st.warning(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="⚠️")
 
         with tabs[1]:  # Görüntüle
-            st.header(f"👁️ {tab_names[1]}")
+            st.header(tab_names[1])
             if st.session_state.uploaded_file:
                 st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
                 st.info(self.texts.get("status_architecture_in_progress", "Görüntüleme modülü yükleniyor..."), icon="ℹ️")
@@ -368,7 +382,7 @@ class Dashboard:
                 st.info(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="ℹ️")
 
         with tabs[2]:  # AI Analizi
-            st.header(f"🤖 {tab_names[2]}")
+            st.header(tab_names[2])
             if st.session_state.uploaded_file:
                 st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
                 st.info(self.texts.get("status_architecture_in_progress", "AI analiz modülü yükleniyor..."), icon="ℹ️")

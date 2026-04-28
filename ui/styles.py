@@ -232,13 +232,14 @@ def apply_custom_css(theme: str = "dark"):
         /* Uyarılar (Alerts & Toasts) - Başarı ve Hata Varyantları */
         [data-testid="stAlert"] {
             border-radius: var(--radius) !important;
-            font-weight: 500 !important;
-            border: 1px solid var(--border) !important;
+            font-weight: 600 !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: var(--shadow) !important;
         }
         
-        [data-testid="stAlert"]:has([data-testid="stMarkdownContainer"]) {
-            /* General styling for alerts */
-            background-color: var(--bg-surface-2) !important;
+        /* st.success ve st.error'un varsayılan arka planını hafif şeffaf yaparak brand hissiyatı ver */
+        [data-testid="stAlert"] {
+            backdrop-filter: blur(10px);
         }
 
         /* Sidebar öğeleri */
@@ -365,6 +366,16 @@ def apply_custom_css(theme: str = "dark"):
         }
         .history-file-item-time {
             color: rgba(11, 18, 32, 0.5) !important;
+        }
+
+        /* Button Light Theme */
+        .stButton>button:hover,
+        button[kind="secondary"]:hover {
+            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.15) !important;
+        }
+        .stButton>button:active,
+        button[kind="secondary"]:active {
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.1) !important;
         }
     </style>
     """
