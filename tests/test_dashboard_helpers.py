@@ -10,6 +10,7 @@ import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
 
 # docx2pdf modülü yüklü olmayabilir (bilinen eksik bağımlılık).
 # converter.py import'unu kırmamak için test başlamadan önce mock enjekte ediyoruz.
@@ -17,6 +18,118 @@ if "docx2pdf" not in sys.modules:
     sys.modules["docx2pdf"] = MagicMock()
 
 from ui.dashboard import Dashboard, _FORMAT_MAP
+
+
+# ---------------------------------------------------------------------------
+# _add_to_file_history ve bildirim helper testleri
+# ---------------------------------------------------------------------------
+
+def test_add_to_file_history_deduplicates_and_appends_latest(monkeypatch):
+    """Ayni dosya tekrar eklenince eski kayit silinip sona eklenmeli."""
+    class FakeSessionState(SimpleNamespace):
+        def __contains__(self, key):
+            return hasattr(self, key)
+
+    fake_session_state = FakeSessionState(
+        file_history=[
+            {"name": "old.txt", "time": "10:00:00", "date": "28.04.2026"},
+            {"name": "keep.txt", "time": "10:01:00", "date": "28.04.2026"},
+        ]
+    )
+    monkeypatch.setattr("ui.dashboard.st.session_state", fake_session_state)
+
+    Dashboard({})._add_to_file_history("old.txt")
+
+    assert [item["name"] for item in fake_session_state.file_history] == ["keep.txt", "old.txt"]
+
+
+def test_notify_helpers_call_streamlit_feedback(monkeypatch):
+    """Basari ve hata helper'lari ilgili Streamlit API'lerini cagirmali."""
+    calls = {"toast": [], "success": [], "error": []}
+    monkeypatch.setattr("ui.dashboard.st.toast", calls["toast"].append)
+    monkeypatch.setattr("ui.dashboard.st.success", calls["success"].append)
+    monkeypatch.setattr("ui.dashboard.st.error", lambda message, icon=None: calls["error"].append((message, icon)))
+
+    Dashboard.notify_success("tamam")
+    Dashboard.notify_error("problem")
+
+    assert calls["toast"] == ["✅ tamam"]
+    assert calls["success"] == ["tamam"]
+    assert calls["error"] == [("problem", "🚨")]
+
+
+# ---------------------------------------------------------------------------
+# render_main_area testleri
+# ---------------------------------------------------------------------------
+
+def test_render_main_area_without_uploaded_file_shows_guidance(monkeypatch):
+    """Dosya yokken tum sekmeler kullaniciya yukleme yonlendirmesi gostermeli."""
+    class FakeSessionState(SimpleNamespace):
+        def get(self, key, default=None):
+            return getattr(self, key, default)
+
+    class DummyTab:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    fake_session_state = FakeSessionState(active_tab="Dönüştür", uploaded_file=None)
+    warnings = []
+    infos = []
+    headers = []
+
+    monkeypatch.setattr("ui.dashboard.st.session_state", fake_session_state)
+    monkeypatch.setattr("ui.dashboard.st.tabs", lambda names: [DummyTab(), DummyTab(), DummyTab()])
+    monkeypatch.setattr("ui.dashboard.st.header", headers.append)
+    monkeypatch.setattr("ui.dashboard.st.warning", lambda message, icon=None: warnings.append((message, icon)))
+    monkeypatch.setattr("ui.dashboard.st.info", lambda message, icon=None: infos.append((message, icon)))
+
+    Dashboard({"convert_tab": "Dönüştür", "view_tab": "Görüntüle", "ai_tab": "AI"}).render_main_area()
+
+    assert headers == ["🔄 Dönüştür", "👁️ Görüntüle", "🤖 AI"]
+    assert warnings == [("Lütfen önce yan menüden bir dosya yükleyin.", "⚠️")]
+    assert infos == [
+        ("Lütfen önce yan menüden bir dosya yükleyin.", "ℹ️"),
+        ("Lütfen önce yan menüden bir dosya yükleyin.", "ℹ️"),
+    ]
+
+
+def test_render_main_area_with_unsupported_file_warns_conversion_unavailable(monkeypatch):
+    """Desteklenmeyen uzantida convert sekmesi uygun uyariyi gostermeli."""
+    class FakeSessionState(SimpleNamespace):
+        def get(self, key, default=None):
+            return getattr(self, key, default)
+
+    class DummyTab:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    uploaded_file = SimpleNamespace(name="notes.xyz")
+    fake_session_state = FakeSessionState(active_tab="Dönüştür", uploaded_file=uploaded_file)
+    warnings = []
+    infos = []
+    writes = []
+
+    monkeypatch.setattr("ui.dashboard.st.session_state", fake_session_state)
+    monkeypatch.setattr("ui.dashboard.st.tabs", lambda names: [DummyTab(), DummyTab(), DummyTab()])
+    monkeypatch.setattr("ui.dashboard.st.header", lambda _message: None)
+    monkeypatch.setattr("ui.dashboard.st.write", writes.append)
+    monkeypatch.setattr("ui.dashboard.st.warning", lambda message, icon=None: warnings.append((message, icon)))
+    monkeypatch.setattr("ui.dashboard.st.info", lambda message, icon=None: infos.append((message, icon)))
+
+    Dashboard({"convert_tab": "Dönüştür", "view_tab": "Görüntüle", "ai_tab": "AI"}).render_main_area()
+
+    assert any("notes.xyz" in message for message in writes)
+    assert warnings == [("Bu dosya türü için dönüştürme desteği bulunmuyor.", None)]
+    assert infos == [
+        ("Görüntüleme modülü yükleniyor...", "ℹ️"),
+        ("AI analiz modülü yükleniyor...", "ℹ️"),
+    ]
 
 
 # ---------------------------------------------------------------------------
