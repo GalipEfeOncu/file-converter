@@ -2,6 +2,7 @@ streamlit~=1.44.0
 pandas~=2.2.3
 openpyxl~=3.1.5
 python-docx~=1.1.2
+docx2pdf~=0.1.8
 PyPDF2~=3.0.1
 pdf2docx~=0.5.8
 PyMuPDF~=1.25.5
