@@ -220,10 +220,10 @@ def test_convert_docx_to_txt_missing_file_returns_false(tmp_path: Path):
     )
 
     assert result is False
-def test_pdf_to_images_fail(self): # Eğer class içindeyse self ekle
+def test_pdf_to_images_fail(): 
     converter = FileConverter()
     assert converter.pdf_to_images("yok.pdf", "out") == []
 
-def test_merge_pdfs_fail(self):
+def test_merge_pdfs_fail():
     converter = FileConverter()
     assert converter.merge_pdfs([], "out.pdf") is False
