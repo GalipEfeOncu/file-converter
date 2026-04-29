@@ -12,14 +12,16 @@ import fitz  # PyMuPDF
 from PIL import Image
 from pdf2docx import Converter
 from docx2pdf import convert as docx2pdf_convert
+import pypandoc
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 
 class FileConverter:
-    def convert_pdf_to_docx(self, input_path: str, output_path: str) -> bool:
+    QUALITY_PRESETS = {"low": 50, "medium": 75, "high": 90, "lossless": 100}
+    def convert_pdf_to_docx(self, input_path: str, output_path: str, start: int = 0, end: int | None = None) -> bool:
         try:
             cv = Converter(input_path)
-            cv.convert(output_path, start=0, end=None)
+            cv.convert(output_path, start=start, end=end)
             cv.close()
             return True
         except Exception as e:
@@ -37,14 +39,33 @@ class FileConverter:
         except Exception as e:
             logging.error(f"XLSX->CSV Hatası: {e}"); return False
 
-    def convert_image(self, input_path: str, output_path: str, target_format: str, quality: int = 85) -> bool:
+    def convert_image(self, input_path: str, output_path: str, target_format: str, quality: int | str = 100) -> bool:
         try:
             img = Image.open(input_path)
             target = target_format.upper().replace("JPG", "JPEG")
+            if isinstance(quality, str):
+                quality_key = quality.lower()
+                if quality_key not in self.QUALITY_PRESETS:
+                    raise ValueError(f"Bilinmeyen kalite preset'i: {quality}")
+                quality = self.QUALITY_PRESETS[quality_key]
             if target == "JPEG" and img.mode in ("RGBA", "P"): img = img.convert("RGB")
             img.save(output_path, format=target, quality=quality); return True
         except Exception as e:
             logging.error(f"Görsel Hatası: {e}"); return False
+
+    def convert_rtf_to_docx(self, input_path: str, output_path: str) -> bool:
+        try:
+            pypandoc.convert_file(input_path, "docx", format="rtf", outputfile=output_path)
+            return True
+        except Exception as e:
+            logging.error(f"RTF->DOCX Hatası: {e}"); return False
+
+    def convert_odt_to_docx(self, input_path: str, output_path: str) -> bool:
+        try:
+            pypandoc.convert_file(input_path, "docx", format="odt", outputfile=output_path)
+            return True
+        except Exception as e:
+            logging.error(f"ODT->DOCX Hatası: {e}"); return False
 
     def convert_docx_to_txt(self, input_path: str, output_path: str) -> bool:
         try:
