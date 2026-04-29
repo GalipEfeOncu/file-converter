@@ -407,16 +407,16 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** PyInstaller `.spec` dosyası yazmak; Streamlit'in özel ihtiyaçlarını (assets klasörü, runtime hooks) çözmek; `.exe` çift tıklayınca tarayıcı otomatik açılmasını sağlayacak launcher script.
 *   **User Story:** _"Bir kullanıcı olarak, uygulamayı GitHub Releases'tan indirip Python kurmadan, terminal komutu yazmadan çift tıklayarak çalıştırmak istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] `build/universal-file-workstation.spec` dosyası repo'ya eklenir.
-    - [ ] `assets/`, `config/`, `core/`, `ui/` klasörleri `.exe` içine bundle edilir (`datas` parametresi).
-    - [ ] Launcher script (`launcher.py` veya `main.py`'a eklenen `__main__` bloğu) Streamlit server'ı subprocess olarak başlatır + tarayıcı açar.
+    - [x] `build/universal-file-workstation.spec` dosyası repo'ya eklenir. ✅ (Issue #26 raporu — Galip Efe)
+    - [x] `assets/`, `config/`, `core/`, `ui/` klasörleri `.exe` içine bundle edilir (`datas` parametresi). ✅ (Issue #26 raporu — Galip Efe)
+    - [x] Launcher script (`launcher.py` veya `main.py`'a eklenen `__main__` bloğu) Streamlit server'ı subprocess olarak başlatır + tarayıcı açar. ✅ (Issue #26 raporu — Galip Efe)
     - [ ] `.exe` boyutu < 250 MB (PRD hedefi 200 MB, esneklik tanınır).
-    - [ ] Windows Defender false-positive'i için `pyinstaller --noconfirm --uac-admin` veya code signing notu dokümante edilir.
-    - [ ] `docs/BUILD.md` adımlı build talimatı içerir.
+    - [x] Windows Defender false-positive'i için `pyinstaller --noconfirm --uac-admin` veya code signing notu dokümante edilir. ✅ (Scrum Master, 2026-04-29)
+    - [x] `docs/BUILD.md` adımlı build talimatı içerir. ✅ (Scrum Master, 2026-04-29)
 *   **Görevler:**
-    - [ ] `pyinstaller` ve `streamlit` runtime hook araştırması.
-    - [ ] `.spec` dosyasını yaz; `hiddenimports` listesi (streamlit, pydub vb. için).
-    - [ ] Launcher script.
+    - [x] `pyinstaller` ve `streamlit` runtime hook araştırması. ✅ (Issue #26 raporu)
+    - [x] `.spec` dosyasını yaz; `hiddenimports` listesi (streamlit, pydub vb. için). ✅ (Issue #26 raporu)
+    - [x] Launcher script. ✅ (Issue #26 raporu)
     - [ ] App icon (`.ico`) hazırla (Samet ile koordinasyon).
     - [ ] Test build'i temiz Win10/11 VM'de.
 
