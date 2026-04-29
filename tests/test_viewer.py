@@ -246,3 +246,124 @@ class TestDisplayTextDocument:
         fv = FileViewer()
         extracted = fv.extract_text(str(unsupported_file))
         assert extracted == "", "Desteklenmeyen dosya türünden metin çıkarılamamalı."
+
+
+# ===========================================================================
+# Issue #24: render_pdf parametreleri + display_table arama testleri
+# ===========================================================================
+
+class TestRenderPdfPagination:
+    """render_pdf start/end parametre desteği testleri (Issue #24)."""
+
+    def test_render_pdf_start_end_limits_pages(self, tmp_path: Path):
+        """Başarılı senaryo: render_pdf start=0, end=1 ile yalnızca 1 sayfa döner."""
+        from core.viewer import FileViewer
+
+        fv = FileViewer()
+        # Gerçek bir PyMuPDF belgesi yerine mock kullan
+        mock_doc = MagicMock()
+        mock_page = MagicMock()
+        mock_pixmap = MagicMock()
+        mock_pixmap.tobytes.return_value = b"fake_png_bytes"
+        mock_page.get_pixmap.return_value = mock_pixmap
+        mock_doc.load_page.return_value = mock_page
+        mock_doc.__len__ = MagicMock(return_value=10)
+
+        with patch("core.viewer.fitz.open", return_value=mock_doc):
+            result = fv.render_pdf("fake.pdf", start=0, end=1)
+
+        assert len(result) == 1, "start=0, end=1 ile yalnızca 1 sayfa dönmeli."
+        assert result[0] == b"fake_png_bytes"
+
+    def test_render_pdf_default_returns_all_pages(self, tmp_path: Path):
+        """Başarılı senaryo: parametresiz çağrıda tüm sayfalar döner."""
+        from core.viewer import FileViewer
+
+        fv = FileViewer()
+        PAGE_COUNT = 5
+        mock_doc = MagicMock()
+        mock_page = MagicMock()
+        mock_pixmap = MagicMock()
+        mock_pixmap.tobytes.return_value = b"page"
+        mock_page.get_pixmap.return_value = mock_pixmap
+        mock_doc.load_page.return_value = mock_page
+        mock_doc.__len__ = MagicMock(return_value=PAGE_COUNT)
+
+        with patch("core.viewer.fitz.open", return_value=mock_doc):
+            result = fv.render_pdf("fake.pdf")
+
+        assert len(result) == PAGE_COUNT, "Varsayılan çağrıda tüm sayfalar dönmeli."
+
+    def test_render_pdf_out_of_bound_end_clamps(self, tmp_path: Path):
+        """Sınır senaryosu: end > toplam sayfa olursa son sayfada kesilir."""
+        from core.viewer import FileViewer
+
+        fv = FileViewer()
+        mock_doc = MagicMock()
+        mock_page = MagicMock()
+        mock_pixmap = MagicMock()
+        mock_pixmap.tobytes.return_value = b"p"
+        mock_page.get_pixmap.return_value = mock_pixmap
+        mock_doc.load_page.return_value = mock_page
+        mock_doc.__len__ = MagicMock(return_value=3)
+
+        with patch("core.viewer.fitz.open", return_value=mock_doc):
+            result = fv.render_pdf("fake.pdf", start=0, end=999)
+
+        assert len(result) == 3, "end > toplam sayfa olunca toplam sayfa kadar dönmeli."
+
+
+class TestDisplayTableSearch:
+    """display_table arama/filtre özelliği testleri (Issue #24)."""
+
+    def test_display_table_no_query_shows_full_dataframe(self, tmp_path: Path):
+        """Başarılı senaryo: arama sorgusu yokken tüm DataFrame gösterilmeli."""
+        from core.viewer import FileViewer
+        import pandas as pd
+
+        csv_file = tmp_path / "data.csv"
+        csv_file.write_text("isim,yas\nAli,25\nVeli,30\n", encoding="utf-8")
+
+        fv = FileViewer()
+        with (
+            patch("core.viewer.st.text_input", return_value=""),  # boş sorgu
+            patch("core.viewer.st.dataframe") as mock_df,
+        ):
+            fv.display_table(str(csv_file))
+            assert mock_df.called, "Sorgu yokken st.dataframe çağrılmalı."
+            called_df = mock_df.call_args[0][0]
+            assert len(called_df) == 2, "Tüm satırlar görüntülenmeli."
+
+    def test_display_table_query_filters_rows(self, tmp_path: Path):
+        """Başarılı senaryo: arama sorgusu eşleşen satırları filtreler."""
+        from core.viewer import FileViewer
+
+        csv_file = tmp_path / "data.csv"
+        csv_file.write_text("isim,yas\nAli,25\nVeli,30\n", encoding="utf-8")
+
+        fv = FileViewer()
+        with (
+            patch("core.viewer.st.text_input", return_value="Ali"),
+            patch("core.viewer.st.dataframe") as mock_df,
+        ):
+            fv.display_table(str(csv_file))
+            assert mock_df.called, "Eşleşme varsa st.dataframe çağrılmalı."
+            called_df = mock_df.call_args[0][0]
+            assert len(called_df) == 1, "Yalnızca 'Ali' satırı dönmeli."
+
+    def test_display_table_no_match_shows_info(self, tmp_path: Path):
+        """Hata senaryosu: eşleşme yoksa st.info çağrılmalı."""
+        from core.viewer import FileViewer
+
+        csv_file = tmp_path / "data.csv"
+        csv_file.write_text("isim,yas\nAli,25\nVeli,30\n", encoding="utf-8")
+
+        texts = {"table_no_match": "Aramanızla eşleşen satır bulunamadı."}
+        fv = FileViewer()
+        with (
+            patch("core.viewer.st.text_input", return_value="XYZNOMATCH"),
+            patch("core.viewer.st.info") as mock_info,
+        ):
+            fv.display_table(str(csv_file), texts=texts)
+            assert mock_info.called, "Eşleşme yokken st.info çağrılmalı."
+            assert "eşleşen" in mock_info.call_args[0][0], "i18n mesajı gösterilmeli."
