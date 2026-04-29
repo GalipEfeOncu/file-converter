@@ -9,7 +9,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
-develop-eggs/
+!build/
+!build/universal-file-workstation.spec
 dist/
 downloads/
 eggs/
@@ -31,6 +32,10 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+!build/universal-file-workstation.spec
+
+# FFmpeg binary (download_ffmpeg.py ile indirilir)
+assets/bin/
 
 # Installer logs
 pip-log.txt
