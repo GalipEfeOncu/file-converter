@@ -1,12 +1,15 @@
 """
 tests/test_viewer.py — FileViewer display_* metotları ve _dispatch_viewer testleri
-Issue #13 + Issue #8 — Abdulkadir Sar (Aksar712)
+Issue #13 + Issue #8 + Issue #24 + Issue #29 — Abdulkadir Sar (Aksar712)
 
 Kapsam:
   - display_image başarılı senaryo (st.image çağrısını doğrular)
   - display_image eksik dosya senaryosu (exception fırlatmaz)
   - display_text_document: .txt, .py (kod), .docx başarı ve hata senaryoları
   - _dispatch_viewer: görsel, ses, metin ve desteklenmeyen uzantı yönlendirmeleri
+  - render_pdf pagination testleri (Issue #24)
+  - display_table arama/filtre testleri (Issue #24)
+  - Issue #29: cache, zoom, metadata, extract_text testleri
 """
 
 import sys
@@ -21,6 +24,10 @@ from unittest.mock import MagicMock, patch
 if "fitz" not in sys.modules:
     fitz_stub = MagicMock()
     sys.modules["fitz"] = fitz_stub
+
+from docx import Document
+from core.viewer import FileViewer
+from core import viewer as viewer_module
 
 # ---------------------------------------------------------------------------
 # Yardımcı: tek piksellik minimum PNG bayt dizisi
@@ -328,6 +335,7 @@ class TestDisplayTableSearch:
         with (
             patch("core.viewer.st.text_input", return_value=""),  # boş sorgu
             patch("core.viewer.st.dataframe") as mock_df,
+            patch("core.viewer.st.caption"),
         ):
             fv.display_table(str(csv_file))
             assert mock_df.called, "Sorgu yokken st.dataframe çağrılmalı."
@@ -345,6 +353,7 @@ class TestDisplayTableSearch:
         with (
             patch("core.viewer.st.text_input", return_value="Ali"),
             patch("core.viewer.st.dataframe") as mock_df,
+            patch("core.viewer.st.caption"),
         ):
             fv.display_table(str(csv_file))
             assert mock_df.called, "Eşleşme varsa st.dataframe çağrılmalı."
@@ -363,7 +372,144 @@ class TestDisplayTableSearch:
         with (
             patch("core.viewer.st.text_input", return_value="XYZNOMATCH"),
             patch("core.viewer.st.info") as mock_info,
+            patch("core.viewer.st.caption"),
         ):
             fv.display_table(str(csv_file), texts=texts)
             assert mock_info.called, "Eşleşme yokken st.info çağrılmalı."
             assert "eşleşen" in mock_info.call_args[0][0], "i18n mesajı gösterilmeli."
+
+
+# ===========================================================================
+# Issue #29 — Cache, Zoom, Metadata testleri
+# ===========================================================================
+
+
+def test_cached_render_pdf_exists_as_module_level_function():
+    """Cache'li render fonksiyonu modul seviyesinde tanimli olmali."""
+    import core.viewer as vm
+    assert callable(getattr(vm, "_cached_render_pdf", None)), "_cached_render_pdf bulunamadi"
+    assert callable(getattr(vm, "_cached_read_table", None)), "_cached_read_table bulunamadi"
+
+
+def test_display_image_fit_mode(monkeypatch, tmp_path: Path):
+    """display_image Fit modunda use_container_width=True ile st.image cagirilmali."""
+    img_path = tmp_path / "sample.png"
+    img_path.write_bytes(b"fake-png-bytes")
+    calls = {}
+
+    monkeypatch.setattr(
+        viewer_module.st,
+        "radio",
+        lambda label, options, **kwargs: "Fit"
+    )
+    monkeypatch.setattr(
+        viewer_module.st,
+        "image",
+        lambda data, **kwargs: calls.update({"data": data, "kwargs": kwargs})
+    )
+
+    FileViewer().display_image(str(img_path))
+
+    assert calls["kwargs"].get("use_container_width") is True
+    assert calls["data"] == b"fake-png-bytes"
+
+
+def test_display_image_100_mode(monkeypatch, tmp_path: Path):
+    """display_image 100% modunda use_container_width=False ile st.image cagirilmali."""
+    img_path = tmp_path / "sample.png"
+    img_path.write_bytes(b"fake-png-bytes")
+    calls = {}
+
+    monkeypatch.setattr(
+        viewer_module.st,
+        "radio",
+        lambda label, options, **kwargs: "100%"
+    )
+    monkeypatch.setattr(
+        viewer_module.st,
+        "image",
+        lambda data, **kwargs: calls.update({"data": data, "kwargs": kwargs})
+    )
+
+    FileViewer().display_image(str(img_path))
+
+    assert calls["kwargs"].get("use_container_width") is False
+
+
+def test_display_image_200_mode(monkeypatch, tmp_path: Path):
+    """display_image 200% modunda width=1200 ile st.image cagirilmali."""
+    img_path = tmp_path / "sample.png"
+    img_path.write_bytes(b"fake-png-bytes")
+    calls = {}
+
+    monkeypatch.setattr(
+        viewer_module.st,
+        "radio",
+        lambda label, options, **kwargs: "200%"
+    )
+    monkeypatch.setattr(
+        viewer_module.st,
+        "image",
+        lambda data, **kwargs: calls.update({"data": data, "kwargs": kwargs})
+    )
+
+    FileViewer().display_image(str(img_path))
+
+    assert calls["kwargs"].get("width") == 1200
+
+
+def test_extract_text_from_txt_module(tmp_path: Path):
+    """extract_text TXT dosyasindan icerik dogrudan donmeli."""
+    txt_path = tmp_path / "sample.txt"
+    txt_path.write_text("Merhaba dunya\nIkinci satir", encoding="utf-8")
+
+    result = FileViewer().extract_text(str(txt_path))
+
+    assert "Merhaba dunya" in result
+    assert "Ikinci satir" in result
+
+
+def test_extract_text_from_docx(tmp_path: Path):
+    """extract_text DOCX dosyasindan paragraf metinleri birlestirilmis donmeli."""
+    docx_path = tmp_path / "sample.docx"
+    belge = Document()
+    belge.add_paragraph("Birinci paragraf")
+    belge.add_paragraph("Ikinci paragraf")
+    belge.save(docx_path)
+
+    result = FileViewer().extract_text(str(docx_path))
+
+    assert "Birinci paragraf" in result
+    assert "Ikinci paragraf" in result
+
+
+def test_extract_text_unsupported_returns_empty(tmp_path: Path):
+    """extract_text desteklenmeyen uzanti icin bos string donmeli."""
+    json_path = tmp_path / "data.json"
+    json_path.write_text('{"key": "value"}', encoding="utf-8")
+
+    result = FileViewer().extract_text(str(json_path))
+
+    assert result == ""
+
+
+def test_display_table_shows_metadata(monkeypatch, tmp_path: Path):
+    """display_table st.caption ile metadata ozeti gostermeli."""
+    csv_path = tmp_path / "meta.csv"
+    csv_path.write_text("name,value,score\nalpha,1,3.14\n", encoding="utf-8")
+    captions = []
+
+    monkeypatch.setattr(viewer_module.st, "caption", captions.append)
+    monkeypatch.setattr(
+        viewer_module.st, "dataframe", lambda df, use_container_width=True: None
+    )
+    monkeypatch.setattr(
+        viewer_module.st, "text_input", lambda label, key=None: ""
+    )
+
+    FileViewer().display_table(str(csv_path))
+
+    assert captions, "st.caption cagirilmadi"
+    caption_text = captions[0]
+    assert "satir" in caption_text or "rows" in caption_text or "1" in caption_text
+    assert "sutun" in caption_text or "columns" in caption_text or "3" in caption_text

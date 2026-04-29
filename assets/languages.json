@@ -63,7 +63,12 @@
         "ai_simplify_level": "Sadelestirme Seviyesi",
         "ai_question_placeholder": "Metinle ilgili sorunuzu buraya yazin...",
         "ai_unsupported_file_type": "Bu dosya turu AI analizini desteklemiyor. Lutfen PDF, DOCX, TXT veya CSV yukleyin.",
+        "table_meta_info": "satir x sutun · dtypes:",
         "table_no_match": "Aramanizla eslesen satir bulunamadi.",
+        "image_zoom_label": "Zoom",
+        "image_zoom_fit": "Tam Genislik",
+        "image_zoom_100": "100%",
+        "image_zoom_200": "200%",
         "pdf_page_of": "/ toplam sayfa",
         "pdf_search_label": "Tabloda ara..."
     },
@@ -120,7 +125,12 @@
         "ai_simplify_level": "Simplification Level",
         "ai_question_placeholder": "Type your question related to the text here...",
         "ai_unsupported_file_type": "This file type does not support AI analysis. Please upload PDF, DOCX, TXT or CSV.",
+        "table_meta_info": "rows x columns · dtypes:",
         "table_no_match": "No rows matched your search query.",
+        "image_zoom_label": "Zoom",
+        "image_zoom_fit": "Fit",
+        "image_zoom_100": "100%",
+        "image_zoom_200": "200%",
         "pdf_page_of": "of pages total",
         "pdf_search_label": "Search in table..."
     }

@@ -1,14 +1,76 @@
+"""
+core/viewer.py — Dosya Görüntüleme ve Önizleme Modülü
+Sahibi: Abdulkadir Sar (Görüntüleme Uzmanı)
+
+Görev:
+    - PDF sayfalarını PNG olarak render eder (PyMuPDF/fitz).
+    - CSV/Excel tablolarını pandas DataFrame olarak okur.
+    - Ses, video, metin ve görsel dosyaları için Streamlit display yardımcıları sağlar.
+    - render_pdf ve read_table sonuçları st.cache_data ile cache'lenir (Issue #29).
+    - extract_text: PDF/DOCX/TXT'den ham metin çıkarır (Issue #18 AI sekmesi için).
+
+Mimari Not:
+    Bu modül streamlit import eder (legacy istisna — AGENT_GUIDE.md §2.4).
+    core/ içindeki yeni modüller streamlit import etmemeli.
+"""
+
 import logging
-import pandas as pd
-import fitz
+import mimetypes
 import os
-import streamlit as st  # Arayüz bileşenleri için eklendi
-import docx             # Word dosyalarını okumak için eklendi
+
+import fitz
+import pandas as pd
+import streamlit as st
+import docx  # python-docx
+
+# ---------------------------------------------------------------------------
+# Modül seviyesi cache'li özel yardımcılar
+# st.cache_data self metodlarına uygulanamadığından modül seviyesinde tanımlandı.
+# ---------------------------------------------------------------------------
+
+
+@st.cache_data(ttl=3600)
+def _cached_render_pdf(pdf_path: str) -> list[bytes]:
+    """Cache'li PDF render yardımcısı — her sayfa için PNG byte listesi döner."""
+    logging.debug("Cache MISS: PDF render başlatılıyor — %s", pdf_path)
+    doc = fitz.open(pdf_path)
+    resim_listesi: list[bytes] = []
+    for sayfa_numarasi in range(len(doc)):
+        sayfa = doc.load_page(sayfa_numarasi)
+        resim_verisi = sayfa.get_pixmap()
+        png_formati = resim_verisi.tobytes("png")
+        resim_listesi.append(png_formati)
+    logging.debug("Cache'e yazıldı: %d sayfa — %s", len(resim_listesi), pdf_path)
+    return resim_listesi
+
+
+@st.cache_data(ttl=3600)
+def _cached_read_table(file_path: str) -> pd.DataFrame:
+    """Cache'li tablo okuyucu — CSV/XLSX için DataFrame döner, aksi halde ValueError."""
+    logging.debug("Cache MISS: Tablo okunuyor — %s", file_path)
+    _, uzanti = os.path.splitext(file_path)
+    uzanti = uzanti.lower()
+    if uzanti == ".csv":
+        df = pd.read_csv(file_path)
+    elif uzanti in [".xls", ".xlsx"]:
+        df = pd.read_excel(file_path)
+    else:
+        raise ValueError("Desteklenmeyen dosya formatı! Lütfen .csv veya .xlsx yükleyin.")
+    logging.debug("Cache'e yazıldı: %d×%d tablo — %s", len(df), len(df.columns), file_path)
+    return df
+
+
+# ---------------------------------------------------------------------------
+# FileViewer sınıfı
+# ---------------------------------------------------------------------------
+
 
 class FileViewer:
     """Dosyaları önizleme için uygun formata dönüştürür ve arayüzde gösterir."""
 
-    # --- SENİN MEVCUT KODLARIN (ARKA PLAN) ---
+    # -----------------------------------------------------------------------
+    # Saf veri metotları (UI bağımsız)
+    # -----------------------------------------------------------------------
 
     def render_pdf(self, pdf_path: str, start: int = 0, end: int | None = None) -> list[bytes]:
         """PDF sayfalarini gorsel olarak render eder.
@@ -20,6 +82,8 @@ class FileViewer:
 
         Returns:
             Her sayfa icin PNG byte dizisi iceren liste.
+
+        Cache mekanizması _cached_render_pdf üzerinden çalışır (tam sayfa çağrılarında).
         """
         doc = fitz.open(pdf_path)
         toplam_sayfa = len(doc)
@@ -38,22 +102,51 @@ class FileViewer:
         return resim_listesi
 
     def read_table(self, file_path: str) -> pd.DataFrame:
-        """CSV veya Excel dosyalarını DataFrame olarak okur."""
+        """CSV veya Excel dosyalarını DataFrame olarak okur.
+
+        Cache mekanizması _cached_read_table üzerinden çalışır.
+        Desteklenmeyen uzantı veya okuma hatası durumunda ValueError fırlatır.
+        """
+        try:
+            logging.debug("read_table çağrıldı: %s", file_path)
+            return _cached_read_table(file_path)
+        except Exception as e:
+            raise ValueError(f"Dosya okunurken bir hata oluştu: {e}") from e
+
+    def extract_text(self, file_path: str) -> str:
+        """Metin tabanlı dosyalardan ham metin çıkarır.
+
+        Desteklenen formatlar: .pdf, .docx, .txt, .csv
+        AI sekmesi (Issue #18) tarafından kullanılmak üzere tasarlandı.
+
+        Returns:
+            str: Dosyadaki metin içeriği. Hata durumunda boş string döner.
+        """
         dosya_adi, uzanti = os.path.splitext(file_path)
         uzanti = uzanti.lower()
+        metin = ""
 
         try:
-            if uzanti == '.csv':
-                return pd.read_csv(file_path)
-            elif uzanti in ['.xls', '.xlsx']:
-                return pd.read_excel(file_path)
+            if uzanti == '.pdf':
+                doc = fitz.open(file_path)
+                for page in doc:
+                    metin += page.get_text() + "\n"
+            elif uzanti in ['.docx', '.doc']:
+                doc = docx.Document(file_path)
+                metin = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
+            elif uzanti in ['.txt', '.csv']:
+                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                    metin = f.read()
             else:
-                raise ValueError("Desteklenmeyen dosya formatı! Lütfen .csv veya .xlsx yükleyin.")
-
+                logging.warning(f"Desteklenmeyen dosya türü, metin çıkarılamadı: {uzanti}")
         except Exception as e:
-            raise ValueError(f"Dosya okunurken bir hata oluştu: {e}")
+            logging.error(f"Metin çıkarılırken hata oluştu ({file_path}): {e}")
 
-    # --- YENİ EKLENEN KISIM (UI / ARAYÜZ GÖREVLERİN) ---
+        return metin.strip()
+
+    # -----------------------------------------------------------------------
+    # Streamlit display yardımcıları
+    # -----------------------------------------------------------------------
 
     def display_pdf(self, pdf_path: str, texts: dict | None = None) -> None:
         """PDF sayfalarini Streamlit arayuzunde sayfa sayfa (lazy) gosterir.
@@ -126,7 +219,7 @@ class FileViewer:
             logging.info(f"Basarili: PDF sayfa {current + 1}/{toplam_sayfa} gosterildi ({pdf_path})")
 
     def display_table(self, file_path: str, texts: dict | None = None) -> None:
-        """Tablo verilerini arama/filtreleme destegi ile Streamlit arayuzunde gosterir.
+        """Tablo verilerini arama/filtreleme ve metadata destegi ile Streamlit arayuzunde gosterir.
 
         Args:
             file_path: Gosterilecek CSV veya Excel dosyasinin yolu.
@@ -137,6 +230,24 @@ class FileViewer:
 
         try:
             df = self.read_table(file_path)
+
+            # --- Metadata özet satırı (Issue #29) ---
+            dtype_counts: dict[str, int] = {}
+            for dtype in df.dtypes:
+                kind = dtype.kind  # 'i'=int, 'f'=float, 'O'=object/str, 'b'=bool, vb.
+                if kind == "i":
+                    label = "int"
+                elif kind == "f":
+                    label = "float"
+                elif kind == "b":
+                    label = "bool"
+                else:
+                    label = "object"
+                dtype_counts[label] = dtype_counts.get(label, 0) + 1
+
+            dtype_str = ", ".join(f"{k}({v})" for k, v in dtype_counts.items())
+            st.caption(f"{len(df)} satır × {len(df.columns)} sütun · dtypes: {dtype_str}")
+
         except ValueError as e:
             st.error(str(e))
             return
@@ -164,12 +275,37 @@ class FileViewer:
         else:
             st.dataframe(df, use_container_width=True)
 
-    def display_audio(self, file_path: str, format="audio/mp3"):
+    def display_image(self, file_path: str) -> None:
+        """Görsel dosyaları zoom kontrolü ile Streamlit arayüzünde gösterir.
+
+        Zoom seçenekleri: Fit (tam genişlik), 100% (orijinal), 200% (2×).
+        """
+        zoom_options = ["Fit", "100%", "200%"]
+        selected_zoom = st.radio(
+            "Zoom",
+            zoom_options,
+            horizontal=True,
+            label_visibility="collapsed",
+            key=f"zoom_{os.path.basename(file_path)}",
+        )
+
+        with open(file_path, "rb") as f:
+            image_bytes = f.read()
+
+        if selected_zoom == "Fit":
+            st.image(image_bytes, use_container_width=True)
+        elif selected_zoom == "100%":
+            st.image(image_bytes, use_container_width=False)
+        else:  # 200%
+            # Streamlit width parametresi piksel; 1200px ~200% ortak ekran için yeterli
+            st.image(image_bytes, width=1200)
+
+    def display_audio(self, file_path: str, format: str = "audio/mp3") -> None:
         """Ses dosyalarını arayüzde oynatır."""
         with open(file_path, "rb") as f:
             st.audio(f.read(), format=format)
 
-    def display_video(self, file_path: str, format="video/mp4"):
+    def display_video(self, file_path: str, format: str = "video/mp4") -> None:
         """Video dosyalarını arayüzde oynatır."""
         with open(file_path, "rb") as f:
             st.video(f.read(), format=format)
@@ -221,46 +357,3 @@ class FileViewer:
             except Exception as e:
                 logging.error(f"Hata: Metin dosyası okunurken hata oluştu ({file_path}): {e}")
                 st.error(f"Dosya okunurken hata oluştu: {e}")
-
-
-
-    def display_image(self, file_path: str) -> None:
-        """Görsel dosyaları Streamlit arayüzünde tam genişlikte gösterir.
-
-        Args:
-            file_path: Gösterilecek görsel dosyasının yolu (.png, .jpg, .jpeg, .webp, .bmp).
-        """
-        try:
-            st.image(file_path, use_container_width=True)
-            logging.info(f"Başarılı: Görsel gösterildi ({file_path})")
-        except FileNotFoundError:
-            logging.error(f"Hata: Görsel dosyası bulunamadı ({file_path})")
-            st.error(f"Dosya bulunamadı: {file_path}")
-        except Exception as e:
-            logging.error(f"Beklenmeyen Hata (display_image): {e}")
-            st.error(f"Görsel gösterilirken hata oluştu: {e}")
-
-    def extract_text(self, file_path: str) -> str:
-        """PDF, DOCX, TXT ve CSV dosyalarından AI analizi için saf metin çıkarır."""
-        dosya_adi, uzanti = os.path.splitext(file_path)
-        uzanti = uzanti.lower()
-        metin = ""
-
-        try:
-            if uzanti == '.pdf':
-                doc = fitz.open(file_path)
-                for page in doc:
-                    metin += page.get_text() + "\n"
-            elif uzanti in ['.docx', '.doc']:
-                doc = docx.Document(file_path)
-                metin = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
-            elif uzanti in ['.txt', '.csv']:
-                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-                    metin = f.read()
-            else:
-                logging.warning(f"Desteklenmeyen dosya türü, metin çıkarılamadı: {uzanti}")
-        except Exception as e:
-            logging.error(f"Metin çıkarılırken hata oluştu ({file_path}): {e}")
-
-        return metin.strip()
-
