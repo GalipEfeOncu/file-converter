@@ -61,3 +61,12 @@ Refs: Issue #6
 - **requirements.txt önerisi:** `google-generativeai~=0.8.3` eklenmeli (Gemini API istemcisi). Gerekçe: `ai_engine.py` Gemini model çağrısı yapabilmesi için zorunlu. Mevcut `openai` paketi Gemini'yi desteklemiyor.
 - **main.py değişikliği gerekli mi (Galip Efe için):** Hayır, mevcut `main.py` yapısı yeterli. Dashboard zaten main.py'dan çağrılıyor.
 - **dashboard.py koordinasyonu (Samet için):** tabs[0] bloğu değiştirildi. Samet'in UI/CSS çalışmalarıyla çakışma olmaması için review önerilir.
+
+
+---
+
+## ✅ Scrum Master İnceleme Notu
+- **İnceleyen:** Scrum Master
+- **Tarih:** 2026-04-29
+- **Durum:** Rapor incelendi; ilgili görevler `docs/ROADMAP.md` ve `docs/AGENT_GUIDE.md` üzerinde güncellenmiştir.
+

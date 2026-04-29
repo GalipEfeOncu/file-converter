@@ -5,7 +5,7 @@
 > **Hedef Kitle:** Düşük kapasiteli / hızlı kodlama modelleri (örn. küçük yardımcı LLM'ler).
 > **Bu dosyayı okuduktan sonra model:** Yeni özellik ekleyebilir, mevcut modülleri çağırabilir, doğru i18n anahtarlarını kullanabilir, hataları önleyebilir.
 >
-> **Kaynak Doğruluk:** Bu dosya `2026-04-21` itibarıyla `main.py`, `core/*`, `ui/*`, `config/*`, `assets/*` ve `tests/*` ile birebir senkronize edilmiştir.
+> **Kaynak Doğruluk:** Bu dosya `2026-04-29` itibarıyla `main.py`, `core/*`, `ui/*`, `config/*`, `assets/*` ve `tests/*` ile birebir senkronize edilmiştir.
 
 ---
 
@@ -97,19 +97,18 @@ fc.convert_docx_to_pdf(input_path: str, output_path: str) -> bool
 
 ### 2.3 `core/player.py` — `AudioConverter`
 
-> ⚠️ **BİLİNEN BUG:** Dosyada iki adet `class AudioConverter` ve iki adet `__init__` tanımı vardır. Python yalnızca sonuncuyu kullanır, dolayısıyla **etkili API aşağıdaki gibidir**. Refactor görevi açıktır.
+> ✅ **Çift sınıf bug'ı düzeltildi** (Issue #12). Tek `AudioConverter` sınıfı ve tek `__init__` mevcuttur.
 
 ```python
 from core.player import AudioConverter
 ac = AudioConverter()
 
 ac.ffmpeg_available      # bool, init'te shutil.which("ffmpeg") ile set edilir
-ac.is_ffmpeg_installed() -> bool
 
-ac.convert_audio(input_path: str, output_path: str, target_format: str) -> bool
-    # target_format küçük harfle pydub'a verilir: "mp3" | "wav" | "ogg" | "flac" ...
-ac.convert_mp3_to_ogg(input_path: str, output_path: str) -> bool
-ac.convert_ogg_to_mp3(input_path: str, output_path: str) -> bool
+ac.convert_audio(input_path: str, output_path: str, output_format: str) -> bool
+    # output_format küçük harfle pydub'a verilir: "mp3" | "wav" | "ogg" | "flac" ...
+ac.convert_mp3_to_wav(input_path: str, output_path: str) -> bool
+ac.convert_wav_to_mp3(input_path: str, output_path: str) -> bool
 ```
 
 FFmpeg yoksa tüm dönüşümler `False` döner ve `logging.error` ile loglanır.
@@ -123,16 +122,19 @@ from core.viewer import FileViewer
 fv = FileViewer()
 
 # Saf data (UI bağımsız):
-fv.render_pdf(pdf_path: str) -> list[bytes]   # her bir PNG sayfa byte dizisi
+fv.render_pdf(pdf_path: str, start: int = 0, end: int | None = None) -> list[bytes]
 fv.read_table(file_path: str) -> pandas.DataFrame
     # .csv, .xls, .xlsx desteklenir; aksi halde ValueError
+fv.extract_text(file_path: str) -> str
+    # .pdf, .docx, .txt, .csv — AI sekmesi için ham metin çıkarır
 
 # Streamlit'e basan helper'lar:
-fv.display_pdf(pdf_path: str) -> None         # st.image ile sayfa sayfa
-fv.display_table(file_path: str) -> None      # st.dataframe
+fv.display_pdf(pdf_path: str, texts: dict | None = None) -> None   # lazy pagination
+fv.display_table(file_path: str, texts: dict | None = None) -> None  # arama + metadata
+fv.display_image(file_path: str) -> None      # Fit/100%/200% zoom
 fv.display_audio(file_path: str, format: str = "audio/mp3") -> None
 fv.display_video(file_path: str, format: str = "video/mp4") -> None
-fv.display_text_document(file_path: str) -> None  # .txt -> text_area, .docx -> markdown
+fv.display_text_document(file_path: str) -> None  # .txt -> text_area, .docx -> markdown, kod -> st.code
 ```
 
 ### 2.5 `core/ai_engine.py` — `AIEngine`
@@ -283,16 +285,14 @@ Kullanıcı sidebar'dan dosya yükler
 | `Pillow` | `~=11.2.1` | `converter` | Görsel dönüşümü |
 | `pydub` | `~=0.25.1` | `player` | Ses dönüşümü |
 | `audioop-lts` | `~=0.2.1` | (Python 3.13+ pydub uyumu) | |
-| `openai` | `~=1.70.0` | ~~`ai_engine`~~ (kullanılmıyor) | LLM client — `google-generativeai~=0.8.3` ile değiştirilmeli (Ali ile koordinasyon) |
+| `google-generativeai` | `~=0.8.3` | `ai_engine` | Gemini API istemcisi ✅ (openai ile değiştirildi, 2026-04-29) |
 | `python-dotenv` | `~=1.0.1` | `config/settings` | `.env` yükleme |
 | `pytest` | `~=8.3.5` | `tests/*` | Test runner |
+| `pytest-cov` | `~=7.1.0` | `tests/*` | Coverage raporu (Issue #25) |
 
 **Sistem Bağımlılıkları:**
 - **FFmpeg** (ses dönüşümü için PATH'te olmalı)
 - **MS Word** (yalnızca DOCX→PDF için, Windows)
-- **docx2pdf** (requirements.txt'de yok ama `core/converter.py` import ediyor — eksiklik, eklenmeli)
-
-> ⚠️ **Tutarsızlık:** `from docx2pdf import convert as docx2pdf_convert` kullanılıyor ama `requirements.txt`'de `docx2pdf` listelenmemiş. Yeni dönüşüm test ederken pip ile kurulmalı.
 
 ---
 
@@ -345,13 +345,13 @@ python -m pytest tests/test_requirements.py -v
 
 | # | Konum | Tip | Açıklama | Durum |
 |:---|:---|:---|:---|:---|
-| 1 | `core/player.py` | 🐛 Bug | Çift `class AudioConverter` ve çift `__init__`. Birinciyi tamamen sil. | Açık (Issue #12) |
+| 1 | `core/player.py` | ~~🐛 Bug~~ | ~~Çift `class AudioConverter` ve çift `__init__`.~~ Düzeltildi, tek sınıf mevcut. | ✅ Tamamlandı (Issue #12) |
 | 2 | `core/ai_engine.py` | ~~🔲 Stub~~ | ~~Gerçek Gemini/OpenAI entegrasyonu.~~ Issue #16 ile tamamlandı. | ✅ Tamamlandı |
-| 3 | `requirements.txt` | ⚠️ Eksik | `docx2pdf` import ediliyor ama listede yok. `openai` → `google-generativeai` değişimi de gerekli. | Açık (Issue #15 + Ali koordinasyonu) |
-| 4 | `ui/dashboard.py` | 🌐 i18n | Sidebar başlıkları (Navigasyon, Ayarlar, vb.) hardcoded; `languages.json`'a taşı. | Açık (Issue #14) |
-| 5 | `main.py` tab içerikleri | ~~🔌 Bağlantı~~ | ~~"Dönüştürme modülü yükleniyor..." placeholder'ları~~ Dönüştür sekmesi bağlandı (Issue #6 + #11). | ✅ Tamamlandı |
-| 6 | View sekmesi | 🔌 Bağlantı | Yüklenen dosyanın uzantısına göre `FileViewer.display_*` çağrılmalı. | Açık (Issue #13) |
-| 7 | AI sekmesi | 🔌 Bağlantı | Text input + `AIEngine.answer_question` veya `summarize` butonu. | Açık (Issue #18) |
+| 3 | `requirements.txt` | ~~⚠️ Eksik~~ | ~~`docx2pdf` ve `google-generativeai` eksikti.~~ Her ikisi de eklendi. | ✅ Tamamlandı (Issue #15 + Scrum Master) |
+| 4 | `ui/dashboard.py` | ~~🌐 i18n~~ | ~~Sidebar başlıkları hardcoded.~~ `texts.get()` ile i18n'e bağlandı. | ✅ Tamamlandı (Issue #14) |
+| 5 | `main.py` tab içerikleri | ~~🔌 Bağlantı~~ | ~~Dönüştürme placeholder'ları~~ Dönüştür sekmesi bağlandı (Issue #6 + #11). | ✅ Tamamlandı |
+| 6 | View sekmesi | ~~🔌 Bağlantı~~ | ~~Dispatcher eksikti.~~ `_dispatch_viewer` eklendi (Issue #13). | ✅ Tamamlandı |
+| 7 | AI sekmesi | ~~🔌 Bağlantı~~ | ~~AI UI eksikti.~~ 4 AI işlemi bağlandı (Issue #18). | ✅ Tamamlandı |
 | 8 | `core/viewer.py` | 🏗️ Mimari | Streamlit import'u var; saf-data ile UI'yı ayır (opsiyonel refactor). | Açık |
 
 ---

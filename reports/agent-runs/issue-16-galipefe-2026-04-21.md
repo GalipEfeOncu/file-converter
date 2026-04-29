@@ -87,3 +87,12 @@ Refs: Issue #16
 - **i18n key eklemeleri (Ali için):** `error_api_key_missing` ve `error_ai_request_failed` anahtarları `assets/languages.json`'a hem `tr` hem `en` olarak eklendi. Ali'nin sprint review'da parite testini doğrulaması bekleniyor.
 - **requirements.txt önerisi:** `google-generativeai~=0.8.3` eklenmeli. Mevcut `openai~=1.70.0` bağımlılığı artık kullanılmıyor (`ai_engine.py` Gemini kullanıyor); kaldırılması veya değiştirilmesi önerilir. Sahibi Ali — PR'da etiketlenecek.
 - **main.py değişikliği gerekli mi (Galip Efe için):** Bu issue kapsamında hayır. AI sekmesi UI bağlantısı Issue #18 (Abdulkadir) kapsamındadır. `AIEngine` metotları UI'dan çağrılmaya hazırdır.
+
+
+---
+
+## ✅ Scrum Master İnceleme Notu
+- **İnceleyen:** Scrum Master
+- **Tarih:** 2026-04-29
+- **Durum:** Rapor incelendi; ilgili görevler `docs/ROADMAP.md` ve `docs/AGENT_GUIDE.md` üzerinde güncellenmiştir.
+
