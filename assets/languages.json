@@ -53,13 +53,7 @@
         "settings_theme_tooltip": "Acik tema Sprint 5'te gelecek",
         "settings_default_quality": "Varsayilan Gorsel Kalitesi",
         "settings_clear_history": "Gecmisi Temizle",
-        "settings_about": "Hakkinda",
-        "table_meta_info": "satir x sutun · dtypes:",
-        "table_no_match": "Arama sonucu bulunamadi.",
-        "image_zoom_label": "Zoom",
-        "image_zoom_fit": "Tam Genislik",
-        "image_zoom_100": "100%",
-        "image_zoom_200": "200%"
+        "settings_about": "Hakkinda"
     },
     "en": {
         "__UI_HEADER__": "---------- GENERAL UI ----------",
@@ -104,12 +98,6 @@
         "settings_theme_tooltip": "Light theme will be available in Sprint 5",
         "settings_default_quality": "Default Image Quality",
         "settings_clear_history": "Clear History",
-        "settings_about": "About",
-        "table_meta_info": "rows x columns · dtypes:",
-        "table_no_match": "No results found for search.",
-        "image_zoom_label": "Zoom",
-        "image_zoom_fit": "Fit",
-        "image_zoom_100": "100%",
-        "image_zoom_200": "200%"
+        "settings_about": "About"
     }
 }
