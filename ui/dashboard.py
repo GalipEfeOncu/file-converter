@@ -14,6 +14,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from config.settings import Config
+from core.viewer import FileViewer
 
 # ---------------------------------------------------------------------------
 # Dosya uzantısına göre desteklenen hedef formatlar
@@ -303,7 +304,77 @@ class Dashboard:
 
         return False
 
+    def _dispatch_viewer(self, uploaded_file) -> None:
+        """Yüklenen dosyanın uzantısına göre uygun FileViewer.display_* metodunu çağırır.
+
+        Desteklenen uzantı eşlemeleri:
+            .pdf            → display_pdf
+            .csv/.xls/.xlsx → display_table
+            .mp3/.wav/.ogg  → display_audio  (MIME tipi mimetypes ile belirlenir)
+            .mp4/.mov/.webm → display_video  (MIME tipi mimetypes ile belirlenir)
+            .png/.jpg/.jpeg/.webp/.bmp → display_image
+            .txt/.docx      → display_text_document
+        """
+        import mimetypes
+
+        ext = os.path.splitext(uploaded_file.name)[1].lower()
+
+        # Uzantı → metod eşlemesi
+        pdf_exts = {".pdf"}
+        table_exts = {".csv", ".xls", ".xlsx"}
+        audio_exts = {".mp3", ".wav", ".ogg", ".flac", ".m4a"}  # m4a eklendi
+        video_exts = {".mp4", ".mov", ".webm"}
+        image_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}  # SVG st.image desteklemez, kasıtlı dışarıda
+        # Kod ve düz metin dosyaları: display_text_document UTF-8 olarak okur
+        text_exts = {
+            ".txt", ".docx", ".doc", ".rtf", ".odt",  # belgeler
+            ".py", ".js", ".html", ".css", ".java",    # kod
+            ".cpp", ".sql", ".yaml", ".json", ".xml",   # kod / veri
+        }
+
+        fv = FileViewer()
+
+        # Dosyayı temp/'e yaz (tüm display_ metotları dosya yolu alır)
+        file_path = self._save_upload_to_temp(uploaded_file)
+
+        try:
+            if ext in pdf_exts:
+                with st.spinner(self.texts.get("loading_rendering", "Dosya görüntüye hazırlanıyor...")):
+                    fv.display_pdf(file_path)
+
+            elif ext in table_exts:
+                with st.spinner(self.texts.get("loading_rendering", "Dosya görüntüye hazırlanıyor...")):
+                    fv.display_table(file_path)
+
+            elif ext in audio_exts:
+                mime_type, _ = mimetypes.guess_type(uploaded_file.name)
+                audio_format = mime_type if mime_type else "audio/mp3"
+                fv.display_audio(file_path, format=audio_format)
+
+            elif ext in video_exts:
+                mime_type, _ = mimetypes.guess_type(uploaded_file.name)
+                video_format = mime_type if mime_type else "video/mp4"
+                fv.display_video(file_path, format=video_format)
+
+            elif ext in image_exts:
+                fv.display_image(file_path)
+
+            elif ext in text_exts:
+                with st.spinner(self.texts.get("loading_rendering", "Dosya görüntüye hazırlanıyor...")):
+                    fv.display_text_document(file_path)
+
+            else:
+                st.warning(
+                    self.texts.get("error_unsupported_file", "Desteklenmeyen dosya türü."),
+                    icon="⚠️"
+                )
+        finally:
+            # Geçici dosyayı temizle
+            from pathlib import Path as _Path
+            _Path(file_path).unlink(missing_ok=True)
+
     def render_main_area(self):
+
         """
         Ana içerik alanını st.tabs ile kurgular.
         Samet Demir — Modern tab sistemi (Dönüştür, Görüntüle, AI) entegrasyonu.
@@ -376,15 +447,88 @@ class Dashboard:
         with tabs[1]:  # Görüntüle
             st.header(tab_names[1])
             if st.session_state.uploaded_file:
-                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
-                st.info(self.texts.get("status_architecture_in_progress", "Görüntüleme modülü yükleniyor..."), icon="ℹ️")
+                uploaded = st.session_state.uploaded_file
+                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {uploaded.name}")
+                self._dispatch_viewer(uploaded)
             else:
                 st.info(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="ℹ️")
+
 
         with tabs[2]:  # AI Analizi
             st.header(tab_names[2])
             if st.session_state.uploaded_file:
-                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {st.session_state.uploaded_file.name}")
-                st.info(self.texts.get("status_architecture_in_progress", "AI analiz modülü yükleniyor..."), icon="ℹ️")
+                uploaded = st.session_state.uploaded_file
+                st.write(f"📄 **{self.texts.get('selected_file', 'Seçili Dosya')}:** {uploaded.name}")
+
+                ext = os.path.splitext(uploaded.name)[1].lower()
+                ai_supported_exts = {".pdf", ".docx", ".txt", ".csv", ".doc"}
+
+                if ext not in ai_supported_exts:
+                    st.info(self.texts.get("ai_unsupported_file_type", "Bu dosya türü AI analizini desteklemiyor. Lütfen PDF, DOCX, TXT veya CSV yükleyin."), icon="ℹ️")
+                else:
+                    file_path = self._save_upload_to_temp(uploaded)
+                    try:
+                        fv = FileViewer()
+                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                            text_content = fv.extract_text(file_path)
+
+                        if not text_content:
+                            st.warning("Dosyadan metin çıkarılamadı. AI analizi yapılamıyor.")
+                        else:
+                            from core.ai_engine import AIEngine
+                            ai = AIEngine()
+
+                            st.markdown("### AI İşlemleri")
+                            
+                            c1, c2 = st.columns(2)
+                            with c1:
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_summarize_btn", "Özetle"))
+                                    sum_length = st.radio(self.texts.get("ai_summary_length", "Özet Uzunluğu"), ["short", "medium", "long"], horizontal=True, key="rad_sum")
+                                    if st.button(self.texts.get("ai_summarize_btn", "Özetle"), key="btn_sum", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.summarize(text_content, length=sum_length)
+                                            st.session_state["ai_result"] = (self.texts.get("ai_summarize_btn", "Özetle"), res)
+                                            
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"))
+                                    if st.button(self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"), key="btn_kw", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.extract_keywords(text_content)
+                                            if not res:
+                                                st.session_state["ai_result"] = (self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"), "Anahtar kelime bulunamadı.")
+                                            else:
+                                                st.session_state["ai_result"] = (self.texts.get("ai_keywords_btn", "Anahtar Kelime Çıkar"), "\n".join([f"- {k}" for k in res]))
+
+                            with c2:
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_ask_btn", "Soru Sor"))
+                                    question = st.text_input(self.texts.get("ai_question_placeholder", "Sorunuz..."), key="ai_q")
+                                    if st.button(self.texts.get("ai_ask_btn", "Soru Sor"), key="btn_ask", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.answer_question(text_content, question)
+                                            st.session_state["ai_result"] = (self.texts.get("ai_ask_btn", "Soru Sor"), res)
+
+                                with st.container(border=True):
+                                    st.subheader(self.texts.get("ai_simplify_btn", "Sadeleştir"))
+                                    simp_level = st.radio(self.texts.get("ai_simplify_level", "Sadeleştirme Seviyesi"), ["basic", "intermediate", "advanced"], horizontal=True, key="rad_simp")
+                                    if st.button(self.texts.get("ai_simplify_btn", "Sadeleştir"), key="btn_simp", use_container_width=True):
+                                        with st.spinner(self.texts.get("loading_ai_processing", "AI işlemi devam ediyor...")):
+                                            res = ai.simplify(text_content, level=simp_level)
+                                            st.session_state["ai_result"] = (self.texts.get("ai_simplify_btn", "Sadeleştir"), res)
+                                            
+                            if "ai_result" in st.session_state:
+                                title, content = st.session_state["ai_result"]
+                                if "API bağlantısı kurulamadı" in content or "AI isteği başarısız" in content or "google-generativeai" in content:
+                                    st.error(content)
+                                else:
+                                    with st.expander(title, expanded=True):
+                                        st.markdown(content)
+
+                    finally:
+                        from pathlib import Path as _Path
+                        _Path(file_path).unlink(missing_ok=True)
+                        
             else:
                 st.info(self.texts.get("no_file_uploaded", "Lütfen önce yan menüden bir dosya yükleyin."), icon="ℹ️")
+

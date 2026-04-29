@@ -53,7 +53,16 @@
         "settings_theme_tooltip": "Acik tema Sprint 5'te gelecek",
         "settings_default_quality": "Varsayilan Gorsel Kalitesi",
         "settings_clear_history": "Gecmisi Temizle",
-        "settings_about": "Hakkinda"
+        "settings_about": "Hakkinda",
+        "loading_preview": "Onizleme yukleniyor...",
+        "ai_summarize_btn": "Ozetle",
+        "ai_ask_btn": "Soru Sor",
+        "ai_keywords_btn": "Anahtar Kelime Cikar",
+        "ai_simplify_btn": "Sadelestir",
+        "ai_summary_length": "Ozet Uzunlugu",
+        "ai_simplify_level": "Sadelestirme Seviyesi",
+        "ai_question_placeholder": "Metinle ilgili sorunuzu buraya yazin...",
+        "ai_unsupported_file_type": "Bu dosya turu AI analizini desteklemiyor. Lutfen PDF, DOCX, TXT veya CSV yukleyin."
     },
     "en": {
         "__UI_HEADER__": "---------- GENERAL UI ----------",
@@ -98,6 +107,15 @@
         "settings_theme_tooltip": "Light theme will be available in Sprint 5",
         "settings_default_quality": "Default Image Quality",
         "settings_clear_history": "Clear History",
-        "settings_about": "About"
+        "settings_about": "About",
+        "loading_preview": "Loading preview...",
+        "ai_summarize_btn": "Summarize",
+        "ai_ask_btn": "Ask Question",
+        "ai_keywords_btn": "Extract Keywords",
+        "ai_simplify_btn": "Simplify",
+        "ai_summary_length": "Summary Length",
+        "ai_simplify_level": "Simplification Level",
+        "ai_question_placeholder": "Type your question related to the text here...",
+        "ai_unsupported_file_type": "This file type does not support AI analysis. Please upload PDF, DOCX, TXT or CSV."
     }
 }

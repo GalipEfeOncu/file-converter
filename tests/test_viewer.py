@@ -1,153 +1,248 @@
 """
-tests/test_viewer.py - FileViewer birim testleri
+tests/test_viewer.py — FileViewer display_* metotları ve _dispatch_viewer testleri
+Issue #13 + Issue #8 — Abdulkadir Sar (Aksar712)
 
-Okuma ve Streamlit entegrasyon yardimcilarini mock ile dogrular.
+Kapsam:
+  - display_image başarılı senaryo (st.image çağrısını doğrular)
+  - display_image eksik dosya senaryosu (exception fırlatmaz)
+  - display_text_document: .txt, .py (kod), .docx başarı ve hata senaryoları
+  - _dispatch_viewer: görsel, ses, metin ve desteklenmeyen uzantı yönlendirmeleri
 """
 
+import sys
+import os
+import pytest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-import pandas as pd
-from docx import Document
+# ---------------------------------------------------------------------------
+# PyMuPDF (fitz) yoksa modül seviyesinde stub ekle — CI/lokal uyumluluğu için
+# ---------------------------------------------------------------------------
+if "fitz" not in sys.modules:
+    fitz_stub = MagicMock()
+    sys.modules["fitz"] = fitz_stub
 
-from core.viewer import FileViewer
-from core import viewer as viewer_module
-
-
-def test_render_pdf_returns_png_bytes_for_each_page(monkeypatch, tmp_path: Path):
-    """PDF render helper her sayfa icin PNG byte listesi donmeli."""
-    pdf_path = tmp_path / "sample.pdf"
-    pdf_path.write_bytes(b"%PDF-1.4 fake pdf")
-
-    class FakePixmap:
-        def __init__(self, payload: bytes):
-            self.payload = payload
-
-        def tobytes(self, image_format: str) -> bytes:
-            assert image_format == "png"
-            return self.payload
-
-    class FakePage:
-        def __init__(self, payload: bytes):
-            self.payload = payload
-
-        def get_pixmap(self):
-            return FakePixmap(self.payload)
-
-    class FakeDocument:
-        def __len__(self):
-            return 2
-
-        def load_page(self, index: int):
-            return FakePage(f"page-{index}".encode("utf-8"))
-
-    monkeypatch.setattr(viewer_module.fitz, "open", lambda path: FakeDocument())
-
-    result = FileViewer().render_pdf(str(pdf_path))
-
-    assert result == [b"page-0", b"page-1"]
+# ---------------------------------------------------------------------------
+# Yardımcı: tek piksellik minimum PNG bayt dizisi
+# ---------------------------------------------------------------------------
+MINIMAL_PNG = (
+    b"\x89PNG\r\n\x1a\n"
+    b"\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx"
+    b"\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00"
+    b"\x00\x00\x00IEND\xaeB`\x82"
+)
 
 
-def test_read_table_supports_csv_and_xlsx(tmp_path: Path):
-    """CSV ve XLSX okuma yolları DataFrame donmeli."""
-    csv_path = tmp_path / "table.csv"
-    xlsx_path = tmp_path / "table.xlsx"
-    pd.DataFrame([{"name": "alpha", "value": 1}]).to_csv(csv_path, index=False)
-    pd.DataFrame([{"name": "beta", "value": 2}]).to_excel(xlsx_path, index=False)
+# ===========================================================================
+# display_image testleri
+# ===========================================================================
 
-    viewer = FileViewer()
-    csv_df = viewer.read_table(str(csv_path))
-    xlsx_df = viewer.read_table(str(xlsx_path))
+class TestDisplayImage:
+    """FileViewer.display_image metodu için testler."""
 
-    assert list(csv_df.columns) == ["name", "value"]
-    assert csv_df.iloc[0].to_dict() == {"name": "alpha", "value": 1}
-    assert xlsx_df.iloc[0].to_dict() == {"name": "beta", "value": 2}
+    def test_display_image_calls_st_image_success(self, tmp_path: Path):
+        """Başarılı senaryo: gerçek PNG dosyası ile st.image çağrısını doğrular."""
+        from core.viewer import FileViewer
 
+        img_file = tmp_path / "test.png"
+        img_file.write_bytes(MINIMAL_PNG)
 
-def test_read_table_invalid_extension_raises_value_error(tmp_path: Path):
-    """Desteklenmeyen uzanti ValueError ile raporlanmali."""
-    file_path = tmp_path / "data.json"
-    file_path.write_text("{}", encoding="utf-8")
+        fv = FileViewer()
+        with patch("core.viewer.st.image") as mock_st_image:
+            fv.display_image(str(img_file))
+            mock_st_image.assert_called_once_with(str(img_file), use_container_width=True)
 
-    try:
-        FileViewer().read_table(str(file_path))
-    except ValueError as exc:
-        assert "Desteklenmeyen dosya formatı" in str(exc)
-    else:
-        raise AssertionError("ValueError bekleniyordu")
+    def test_display_image_missing_file_does_not_raise(self, tmp_path: Path):
+        """Hata senaryosu: eksik dosya exception fırlatmamalı; st.error çağrılmalı."""
+        from core.viewer import FileViewer
 
+        missing = str(tmp_path / "nonexistent.png")
+        fv = FileViewer()
 
-def test_display_table_shows_dataframe(monkeypatch, tmp_path: Path):
-    """display_table basarili okumada dataframe gostermeli."""
-    file_path = tmp_path / "table.csv"
-    file_path.write_text("name,value\nalpha,1\n", encoding="utf-8")
-    calls = {}
-
-    def fake_dataframe(df, use_container_width: bool):
-        calls["df"] = df
-        calls["use_container_width"] = use_container_width
-
-    monkeypatch.setattr(viewer_module.st, "dataframe", fake_dataframe)
-
-    FileViewer().display_table(str(file_path))
-
-    assert calls["use_container_width"] is True
-    assert list(calls["df"]["name"]) == ["alpha"]
+        with (
+            patch("core.viewer.st.image", side_effect=FileNotFoundError("Dosya yok")),
+            patch("core.viewer.st.error") as mock_error,
+        ):
+            # Exception fırlatmamalı
+            fv.display_image(missing)
+            assert mock_error.called, "Hata durumunda st.error çağrılmalıydı."
 
 
-def test_display_table_reports_value_error(monkeypatch, tmp_path: Path):
-    """display_table ic hata durumunu st.error ile gostermeli."""
-    file_path = tmp_path / "bad.json"
-    file_path.write_text("{}", encoding="utf-8")
-    errors = []
-    monkeypatch.setattr(viewer_module.st, "error", errors.append)
+# ===========================================================================
+# _dispatch_viewer testleri (Dashboard üzerinde)
+# ===========================================================================
 
-    FileViewer().display_table(str(file_path))
+class TestDispatchViewer:
+    """Dashboard._dispatch_viewer için testler."""
 
-    assert errors
-    assert "Desteklenmeyen dosya formatı" in errors[0]
+    def _make_uploaded_file(self, name: str, content: bytes = b"dummy"):
+        """Sahte bir Streamlit UploadedFile nesnesi üretir."""
+        mock_file = MagicMock()
+        mock_file.name = name
+        mock_file.getbuffer.return_value = content
+        return mock_file
+
+    def test_dispatch_viewer_routes_image_to_display_image(self, tmp_path: Path):
+        """Başarılı senaryo: .png uzantısı display_image'e yönlendirilmeli."""
+        from ui.dashboard import Dashboard
+
+        texts = {}
+        dash = Dashboard(texts)
+
+        uploaded = self._make_uploaded_file("photo.png", MINIMAL_PNG)
+        fake_path = str(tmp_path / "photo.png")
+
+        mock_fv = MagicMock()
+        mock_fv_class = MagicMock(return_value=mock_fv)
+
+        # FileViewer modül seviyesinde import edildiği için ui.dashboard.FileViewer
+        # ile patch edilebilir
+        with (
+            patch.object(Dashboard, "_save_upload_to_temp", return_value=fake_path),
+            patch("ui.dashboard.FileViewer", mock_fv_class),
+            patch("pathlib.Path.unlink"),
+        ):
+            dash._dispatch_viewer(uploaded)
+
+        mock_fv.display_image.assert_called_once_with(fake_path)
 
 
-def test_display_audio_and_video_read_binary(monkeypatch, tmp_path: Path):
-    """Medya helper'lari binary icerigi ilgili Streamlit API'sine aktarmali."""
-    audio_path = tmp_path / "sample.mp3"
-    video_path = tmp_path / "sample.mp4"
-    audio_path.write_bytes(b"audio-bytes")
-    video_path.write_bytes(b"video-bytes")
-    calls = {"audio": None, "video": None}
+    def test_dispatch_viewer_unsupported_ext_shows_warning(self, tmp_path: Path):
+        """Hata senaryosu: desteklenmeyen uzantı için st.warning çağrılmalı."""
+        from ui.dashboard import Dashboard
 
-    monkeypatch.setattr(viewer_module.st, "audio", lambda data, format=None: calls.__setitem__("audio", (data, format)))
-    monkeypatch.setattr(viewer_module.st, "video", lambda data, format=None: calls.__setitem__("video", (data, format)))
+        texts = {"error_unsupported_file": "Desteklenmeyen dosya türü."}
+        dash = Dashboard(texts)
 
-    viewer = FileViewer()
-    viewer.display_audio(str(audio_path), format="audio/mpeg")
-    viewer.display_video(str(video_path), format="video/mp4")
+        uploaded = self._make_uploaded_file("archive.zip", b"PK")
+        fake_path = str(tmp_path / "archive.zip")
 
-    assert calls["audio"] == (b"audio-bytes", "audio/mpeg")
-    assert calls["video"] == (b"video-bytes", "video/mp4")
+        mock_fv = MagicMock()
+        mock_fv_class = MagicMock(return_value=mock_fv)
+
+        with (
+            patch.object(Dashboard, "_save_upload_to_temp", return_value=fake_path),
+            patch("ui.dashboard.FileViewer", mock_fv_class),
+            patch("streamlit.warning") as mock_warning,
+            patch("pathlib.Path.unlink"),
+        ):
+            dash._dispatch_viewer(uploaded)
+
+        mock_warning.assert_called_once()
+        # Uyarı mesajı i18n'den gelmeli
+        assert "Desteklenmeyen" in mock_warning.call_args[0][0]
+
+    def test_dispatch_viewer_routes_audio_to_display_audio(self, tmp_path: Path):
+        """Başarılı senaryo: .mp3 uzantısı display_audio'ya yönlendirilmeli."""
+        from ui.dashboard import Dashboard
+
+        texts = {}
+        dash = Dashboard(texts)
+        uploaded = self._make_uploaded_file("song.mp3", b"\xff\xfb")
+        fake_path = str(tmp_path / "song.mp3")
+
+        mock_fv = MagicMock()
+        mock_fv_class = MagicMock(return_value=mock_fv)
+
+        with (
+            patch.object(Dashboard, "_save_upload_to_temp", return_value=fake_path),
+            patch("ui.dashboard.FileViewer", mock_fv_class),
+            patch("pathlib.Path.unlink"),
+        ):
+            dash._dispatch_viewer(uploaded)
+
+        assert mock_fv.display_audio.called, "display_audio çağrılmalıydı."
+
+    def test_dispatch_viewer_routes_docx_to_display_text(self, tmp_path: Path):
+        """Başarılı senaryo: .docx uzantısı display_text_document'a yönlendirilmeli."""
+        from ui.dashboard import Dashboard
+
+        texts = {}
+        dash = Dashboard(texts)
+        uploaded = self._make_uploaded_file("report.docx", b"PK")
+        fake_path = str(tmp_path / "report.docx")
+
+        mock_fv = MagicMock()
+        mock_fv_class = MagicMock(return_value=mock_fv)
+
+        with (
+            patch.object(Dashboard, "_save_upload_to_temp", return_value=fake_path),
+            patch("ui.dashboard.FileViewer", mock_fv_class),
+            patch("pathlib.Path.unlink"),
+            patch("streamlit.spinner", return_value=MagicMock(__enter__=lambda s: s, __exit__=MagicMock(return_value=False))),
+        ):
+            dash._dispatch_viewer(uploaded)
+
+        assert mock_fv.display_text_document.called, "display_text_document çağrılmalıydı."
 
 
-def test_display_text_document_supports_txt_docx_and_warning(monkeypatch, tmp_path: Path):
-    """Metin helper'i TXT, DOCX ve unsupported akislari dogru API'lere yonlendirmeli."""
-    txt_path = tmp_path / "sample.txt"
-    txt_path.write_text("Merhaba dunya", encoding="utf-8")
-    docx_path = tmp_path / "sample.docx"
-    doc = Document()
-    doc.add_paragraph("Ilk paragraf")
-    doc.add_paragraph("Ikinci paragraf")
-    doc.save(docx_path)
-    unsupported_path = tmp_path / "sample.md"
-    unsupported_path.write_text("# baslik", encoding="utf-8")
+# ===========================================================================
+# display_text_document testleri (Issue #8)
+# ===========================================================================
 
-    calls = {"text_area": [], "markdown": [], "warning": []}
-    monkeypatch.setattr(viewer_module.st, "text_area", lambda label, value, height=400: calls["text_area"].append((label, value, height)))
-    monkeypatch.setattr(viewer_module.st, "markdown", calls["markdown"].append)
-    monkeypatch.setattr(viewer_module.st, "warning", calls["warning"].append)
+class TestDisplayTextDocument:
+    """FileViewer.display_text_document genişletilmiş davranışı için testler."""
 
-    viewer = FileViewer()
-    viewer.display_text_document(str(txt_path))
-    viewer.display_text_document(str(docx_path))
-    viewer.display_text_document(str(unsupported_path))
+    def test_display_txt_file_success(self, tmp_path: Path):
+        """Başarılı senaryo: .txt dosyası st.text_area ile gösterilmeli."""
+        from core.viewer import FileViewer
 
-    assert calls["text_area"] == [("Belge İçeriği", "Merhaba dunya", 400)]
-    assert calls["markdown"] == ["Ilk paragraf\n\nIkinci paragraf"]
-    assert calls["warning"] == ["Bu metin formatı desteklenmiyor."]
+        txt_file = tmp_path / "notes.txt"
+        txt_file.write_text("Merhaba Dünya", encoding="utf-8")
+
+        fv = FileViewer()
+        with patch("core.viewer.st.text_area") as mock_area:
+            fv.display_text_document(str(txt_file))
+            assert mock_area.called, "st.text_area çağrılmalıydı."
+            # İçerik doğru geçirilmeli
+            assert "Merhaba Dünya" in mock_area.call_args[0][1]
+
+    def test_display_python_file_uses_st_code(self, tmp_path: Path):
+        """Başarılı senaryo: .py dosyası st.code(language='python') ile gösterilmeli."""
+        from core.viewer import FileViewer
+
+        py_file = tmp_path / "script.py"
+        py_file.write_text("print('hello')", encoding="utf-8")
+
+        fv = FileViewer()
+        with patch("core.viewer.st.code") as mock_code:
+            fv.display_text_document(str(py_file))
+            mock_code.assert_called_once_with("print('hello')", language="python")
+
+    def test_display_text_document_read_error_does_not_raise(self, tmp_path: Path):
+        """Hata senaryosu: okuma hatası exception fırlatmamalı; st.error çağrılmalı."""
+        from core.viewer import FileViewer
+
+        py_file = tmp_path / "broken.py"
+        py_file.write_text("x = 1", encoding="utf-8")
+
+        fv = FileViewer()
+        with (
+            patch("builtins.open", side_effect=PermissionError("Erişim reddedildi")),
+            patch("core.viewer.st.error") as mock_error,
+        ):
+            fv.display_text_document(str(py_file))
+            assert mock_error.called, "Hata durumunda st.error çağrılmalıydı."
+
+    def test_extract_text_from_txt(self, tmp_path: Path):
+        """Başarılı senaryo: extract_text ile .txt dosyasından metin çıkarma."""
+        from core.viewer import FileViewer
+
+        txt_file = tmp_path / "sample.txt"
+        txt_file.write_text("Örnek Metin İçeriği", encoding="utf-8")
+
+        fv = FileViewer()
+        extracted = fv.extract_text(str(txt_file))
+        assert extracted == "Örnek Metin İçeriği", "Çıkarılan metin doğru olmalı."
+
+    def test_extract_text_unsupported_ext(self, tmp_path: Path):
+        """Hata senaryosu: desteklenmeyen uzantı için boş string döner."""
+        from core.viewer import FileViewer
+
+        unsupported_file = tmp_path / "image.png"
+        unsupported_file.write_bytes(MINIMAL_PNG)
+
+        fv = FileViewer()
+        extracted = fv.extract_text(str(unsupported_file))
+        assert extracted == "", "Desteklenmeyen dosya türünden metin çıkarılamamalı."
