@@ -25,3 +25,15 @@ Bu durumu yönetmek için aşağıdaki yöntemleri uygulayabilirsiniz:
 - **Çalıştırma Parametreleri:** Build işlemi sırasında yetki sorunlarını aşmak ve uyarıları kısmak için `--noconfirm --uac-admin` bayrakları kullanılabilir veya PyInstaller özellikleri spec dosyasında `uac_admin=True` olarak yapılandırılabilir.
 - **Sertifikasyon (Code Signing):** En güvenilir yöntem, oluşturulan `.exe` dosyasının geçerli bir geliştirici sertifikası (Code Signing Certificate) ile imzalanmasıdır.
 - **Dışlama (Exclusion):** Geliştirme ve test aşamalarında, uygulamanın bulunduğu dizini (`dist/` veya `.exe` dosyasını) Windows Defender dışlamalarına (exclusions) ekleyerek engellemeleri aşabilirsiniz.
+
+## FFmpeg Bundling
+
+### Windows (Sprint 5 scope)
+`python scripts/download_ffmpeg.py` komutu FFmpeg LGPL static build'i
+`assets/bin/ffmpeg.exe` altına indirir. Binary git'e commit edilmez.
+
+### Linux / macOS (Sprint 6 scope)
+Sistem package manager üzerinden kurulum önerilir:
+- Ubuntu/Debian: `sudo apt install ffmpeg`
+- macOS: `brew install ffmpeg`
+Aynı path resolver stratejisi ilerleyen sprintte uygulanacak.
