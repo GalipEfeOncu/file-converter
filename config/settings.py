@@ -9,6 +9,9 @@ Uygulamanın genel ayarlarını, API anahtarlarını, desteklenen dosya türleri
 """
 
 import os
+import json
+import logging
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()  # .env dosyasını okur. Bu sayede API anahtarları gibi gizli bilgiler güvenli bir şekilde saklanır.
@@ -38,3 +41,27 @@ class Config:
     # fmt: on
 
     VERSION = "0.1.0-alpha"
+
+    PREFS_PATH = Path.home() / ".universal-file-workstation" / "preferences.json"
+
+    @staticmethod
+    def load_user_prefs() -> dict:
+        """Kullanıcı tercihlerini ~/.universal-file-workstation/preferences.json'dan okur."""
+        if not Config.PREFS_PATH.exists():
+            return {}
+        try:
+            with open(Config.PREFS_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logging.warning(f"Kullanıcı tercihleri okunamadı: {e}")
+            return {}
+
+    @staticmethod
+    def save_user_prefs(prefs: dict):
+        """Kullanıcı tercihlerini belirtilen konuma kaydeder."""
+        try:
+            Config.PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(Config.PREFS_PATH, "w", encoding="utf-8") as f:
+                json.dump(prefs, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            logging.warning(f"Kullanıcı tercihleri kaydedilemedi: {e}")

@@ -34,8 +34,13 @@ def init_state():
     Pythonda her işlem (butonlara basmak gibi) sayfayı yeniler ve en üstten okumaya başlar. Bundan dolayı her yenilemede
     yapılan işlemler yok olmasın diye st.session_state kullanılır.
     """
+    prefs = Config.load_user_prefs()
+
     if "language" not in st.session_state:  # Hafızada language yok ise tr olarak atar
-        st.session_state.language = "tr"
+        st.session_state.language = prefs.get("language", "tr")
+
+    if "theme" not in st.session_state:
+        st.session_state.theme = prefs.get("theme", "dark")
 
     if "active_tab" not in st.session_state:
         st.session_state.active_tab = "convert"
@@ -50,9 +55,9 @@ def init_state():
 def main():
     # Sayfayı Konfigüre eder. Sayfa başlığı ve genişliği
     st.set_page_config(page_title=Config.APP_NAME, layout="wide")
-    apply_custom_css()  # Tasarım sistemi ve özel renk/tipografi kurulumunu uygula
-
+    
     init_state()  # Hafıza kontrolü yapar. Eğer hafızada bir şey yoksa oluşturur
+    apply_custom_css(theme=st.session_state.theme)  # Tasarım sistemi ve özel renk/tipografi kurulumunu uygula
 
     texts = load_languages()
     

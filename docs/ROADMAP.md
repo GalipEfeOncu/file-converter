@@ -316,17 +316,17 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** Kullanıcının seçtiği tema (light/dark) ve dilin oturum sonrası da hatırlanması için `~/.universal-file-workstation/preferences.json` benzeri bir yerel persistence katmanı kurmak; `Config` üzerinden açılışta okumak.
 *   **User Story:** _"Bir kullanıcı olarak, uygulamayı kapatıp tekrar açtığımda son kullandığım dil ve tema tercihimle açılmasını istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] `config/settings.py` içine `Config.load_user_prefs()` ve `Config.save_user_prefs(prefs: dict)` static metotları eklenir.
-    - [ ] Pencere yolu cross-platform: `Path.home() / ".universal-file-workstation" / "preferences.json"`.
-    - [ ] `main.py::init_state()` ilk açılışta `prefs.json`'dan dil ve temayı okur.
-    - [ ] Dil veya tema değişince otomatik kaydedilir (`Dashboard.render_sidebar()` içinde).
-    - [ ] Dosya yoksa veya bozuksa varsayılana düşer ve `logging.warning` yazar.
-    - [ ] `tests/test_settings.py` ile prefs okuma/yazma testleri.
+    - [x] `config/settings.py` içine `Config.load_user_prefs()` ve `Config.save_user_prefs(prefs: dict)` static metotları eklenir.
+    - [x] Pencere yolu cross-platform: `Path.home() / ".universal-file-workstation" / "preferences.json"`.
+    - [x] `main.py::init_state()` ilk açılışta `prefs.json`'dan dil ve temayı okur.
+    - [x] Dil veya tema değişince otomatik kaydedilir (`Dashboard.render_sidebar()` içinde).
+    - [x] Dosya yoksa veya bozuksa varsayılana düşer ve `logging.warning` yazar.
+    - [x] `tests/test_settings.py` ile prefs okuma/yazma testleri.
 *   **Görevler:**
-    - [ ] `Config` üzerine `PREFS_PATH` constant ve helper metotlar.
-    - [ ] `init_state()` güncellemesi.
-    - [ ] Dashboard'da change-handler'a `Config.save_user_prefs(...)` ekle.
-    - [ ] `.gitignore`'a `preferences.json` (kullanıcı home'unda olduğu için aslında gerekmez ama proje kökünde fallback varsa eklenmeli).
+    - [x] `Config` üzerine `PREFS_PATH` constant ve helper metotlar.
+    - [x] `init_state()` güncellemesi.
+    - [x] Dashboard'da change-handler'a `Config.save_user_prefs(...)` ekle.
+    - [x] `.gitignore`'a `preferences.json` (kullanıcı home'unda olduğu için aslında gerekmez ama proje kökünde fallback varsa eklenmeli).
 
 ### 🟠 Issue #22: Görsel Kalite Önayarları + DOCX Sayfa Aralığı + RTF/ODT Genişletmesi
 *   **Sorumlu:** **Said Hamza Turan**
