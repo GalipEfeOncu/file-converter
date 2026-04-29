@@ -18,6 +18,11 @@ if "docx2pdf" not in sys.modules:
     mock_docx2pdf.convert = MagicMock()
     sys.modules["docx2pdf"] = mock_docx2pdf
 
+if "pypandoc" not in sys.modules:
+    mock_pypandoc = MagicMock()
+    mock_pypandoc.convert_file = MagicMock()
+    sys.modules["pypandoc"] = mock_pypandoc
+
 from core import converter as converter_module
 
 FileConverter = converter_module.FileConverter
@@ -150,6 +155,100 @@ def test_convert_pdf_to_docx_failure_returns_false(tmp_path: Path, monkeypatch):
 
     assert result is False
     assert not output.exists()
+
+
+def test_convert_pdf_to_docx_with_page_range_success(tmp_path: Path, monkeypatch):
+    """PDF to DOCX page range parametreleri cagrisi dogru iletmeli."""
+    source = tmp_path / "input.pdf"
+    output = tmp_path / "output.docx"
+    source.write_bytes(b"%PDF-1.4 fake pdf")
+    call_log = {"start": None, "end": None}
+
+    class FakeConverter:
+        def __init__(self, input_path: str):
+            assert input_path == str(source)
+
+        def convert(self, output_path: str, start: int = 0, end=None) -> None:
+            call_log["start"] = start
+            call_log["end"] = end
+            Path(output_path).write_bytes(b"fake docx bytes")
+
+        def close(self) -> None:
+            return None
+
+    monkeypatch.setattr(converter_module, "Converter", FakeConverter)
+
+    result = FileConverter().convert_pdf_to_docx(str(source), str(output), start=1, end=2)
+
+    assert result is True
+    assert output.exists()
+    assert call_log["start"] == 1
+    assert call_log["end"] == 2
+
+
+def test_convert_image_quality_preset_string_success(tmp_path: Path):
+    """Quality preset string ile gorsel donusumu basarili olmali."""
+    source = tmp_path / "input.png"
+    output = tmp_path / "output.jpg"
+
+    Image.new("RGB", (32, 32), color=(255, 0, 0)).save(source, format="PNG")
+
+    result = FileConverter().convert_image(str(source), str(output), "jpg", quality="high")
+
+    assert result is True
+    assert output.exists()
+
+
+def test_convert_image_invalid_quality_preset_returns_false(tmp_path: Path):
+    """Gecersiz quality preset'i False donmeli."""
+    source = tmp_path / "input.png"
+    output = tmp_path / "output.jpg"
+    Image.new("RGB", (32, 32), color=(255, 255, 255)).save(source, format="PNG")
+
+    result = FileConverter().convert_image(str(source), str(output), "jpg", quality="super")
+
+    assert result is False
+    assert not output.exists()
+
+
+def test_convert_rtf_to_docx_success(tmp_path: Path, monkeypatch):
+    """RTF to DOCX donusumu pypandoc ile basarili olmali."""
+    source = tmp_path / "input.rtf"
+    output = tmp_path / "output.docx"
+    source.write_text("{\\rtf1\\ansi Hello}", encoding="utf-8")
+
+    def fake_convert_file(input_path: str, to: str, format: str, outputfile: str):
+        assert input_path == str(source)
+        assert to == "docx"
+        assert format == "rtf"
+        assert outputfile == str(output)
+        Path(outputfile).write_bytes(b"fake docx bytes")
+
+    monkeypatch.setattr(converter_module.pypandoc, "convert_file", fake_convert_file)
+    result = FileConverter().convert_rtf_to_docx(str(source), str(output))
+
+    assert result is True
+    assert output.exists()
+
+
+def test_convert_odt_to_docx_success(tmp_path: Path, monkeypatch):
+    """ODT to DOCX donusumu pypandoc ile basarili olmali."""
+    source = tmp_path / "input.odt"
+    output = tmp_path / "output.docx"
+    source.write_text("dummy odt content", encoding="utf-8")
+
+    def fake_convert_file(input_path: str, to: str, format: str, outputfile: str):
+        assert input_path == str(source)
+        assert to == "docx"
+        assert format == "odt"
+        assert outputfile == str(output)
+        Path(outputfile).write_bytes(b"fake docx bytes")
+
+    monkeypatch.setattr(converter_module.pypandoc, "convert_file", fake_convert_file)
+    result = FileConverter().convert_odt_to_docx(str(source), str(output))
+
+    assert result is True
+    assert output.exists()
 
 
 def test_convert_docx_to_pdf_success(tmp_path: Path, monkeypatch):
