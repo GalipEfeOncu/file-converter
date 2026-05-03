@@ -1,5 +1,5 @@
 """
-ui/styles.py — CSS ve Görsel Özelleştirme
+ui/styles.py — CSS ve Görsel Özelleştirme (Minimalist Sürüm)
 Sahibi: Samet Demir (Arayüz Tasarımcısı)
 """
 
@@ -7,58 +7,15 @@ import streamlit as st
 
 
 def apply_custom_css(theme: str = "dark"):
-    """Uygulama geneline özel CSS enjekte eder."""
+    """Uygulama geneline özel CSS enjekte eder (Sadece Streamlit'in kontrol etmediği alanlar)."""
     
-    # Try to read theme from session_state if available, falling back to passed parameter
-    try:
-        if "theme" in st.session_state:
-            theme = st.session_state.theme
-    except Exception:
-        pass
-
-    # Design Tokens
-    if theme == "light":
-        colors = """
-        :root {
-          --bg-base: #f8f9fc;
-          --bg-surface: #ffffff;
-          --bg-elevated: #f1f4f9;
-          --border: #e2e8f0;
-          --text-primary: #1e293b;
-          --text-secondary: #64748b;
-          --accent: #5b6af0;
-          --accent-hover: #4a59e8;
-          --success: #10b981;
-          --error: #ef4444;
-          --warning: #f59e0b;
-        }
-        """
-    else:
-        colors = """
-        :root {
-          --bg-base: #0f1117;
-          --bg-surface: #1a1d27;
-          --bg-elevated: #222536;
-          --border: #2e3147;
-          --text-primary: #e8eaf0;
-          --text-secondary: #8b8fa8;
-          --accent: #5b6af0;
-          --accent-hover: #4a59e8;
-          --success: #3d9970;
-          --error: #e05c5c;
-          --warning: #d4924a;
-        }
-        """
-
     custom_css = f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        {colors}
-
         :root {{
           --radius-sm: 6px;
-          --radius-md: 8px;
+          --radius-md: 10px;
           --space-1: 4px;
           --space-2: 8px;
           --space-3: 12px;
@@ -69,128 +26,94 @@ def apply_custom_css(theme: str = "dark"):
           --space-10: 40px;
         }}
 
-        /* Global Reset */
-        * {{
-          font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif !important;
-          -webkit-font-smoothing: antialiased;
+        /* Global Reset & Typography */
+        html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {{
+          font-family: 'Inter', -apple-system, sans-serif !important;
         }}
 
-        html, body, [data-testid="stAppViewContainer"] {{
-          background-color: var(--bg-base) !important;
-          color: var(--text-primary) !important;
-        }}
-
-        /* Sidebar Alignment & Color */
+        /* Sidebar Styling */
         [data-testid="stSidebar"] {{
-          background-color: var(--bg-surface) !important;
-          border-right: 1px solid var(--border) !important;
+          border-right: 1px solid rgba(151, 151, 151, 0.1);
         }}
         
-        [data-testid="stSidebarContent"] {{
-          background-color: var(--bg-surface) !important;
-          padding: var(--space-6) var(--space-5) !important;
+        [data-testid="stSidebarNav"] {{
+          background-color: transparent !important;
         }}
 
-        /* Typography Scale */
-        h1 {{ 
-          font-size: 20px !important; 
-          font-weight: 600 !important; 
-          letter-spacing: -0.01em !important; 
-          margin-bottom: var(--space-1) !important; 
-          color: var(--text-primary) !important;
-        }}
-        h2 {{ 
-          font-size: 15px !important; 
-          font-weight: 600 !important; 
-          letter-spacing: -0.005em !important; 
-          margin-bottom: 2px !important; 
-          color: var(--text-primary) !important;
-        }}
-        h3 {{ 
-          font-size: 13px !important; 
-          font-weight: 500 !important; 
-          color: var(--text-secondary) !important; 
-        }}
-
-        /* Main Content Area */
-        [data-testid="stMainBlockContainer"] {{
-          padding: var(--space-8) var(--space-10) !important;
-          max-width: 960px !important;
-        }}
-
-        /* Cards and Containers */
-        .settings-card, .st-emotion-cache-12w0qpk {{ 
-          background-color: var(--bg-surface) !important;
-          padding: 16px 20px !important; 
-          border: 1px solid var(--border) !important; 
-          border-radius: 8px !important;
-          margin-bottom: 12px !important;
-        }}
-
-        /* Buttons */
+        /* Buttons Fix */
         .stButton > button {{
-          height: 36px !important;
-          padding: 0 16px !important;
-          font-size: 13px !important;
+          border-radius: var(--radius-sm) !important;
+          transition: all 0.2s ease !important;
+          height: 38px !important;
           font-weight: 500 !important;
-          border-radius: 6px !important;
-          border: 1px solid var(--border) !important;
-          background: var(--bg-elevated) !important;
-          color: var(--text-primary) !important;
-          transition: all 150ms ease !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0 20px !important;
         }}
-        
+
         .stButton > button:hover {{
-          background: var(--accent) !important;
-          border-color: var(--accent) !important;
-          color: #ffffff !important;
-        }}
-        
-        .stButton > button[kind="primary"] {{
-          background: var(--accent) !important;
-          border-color: var(--accent) !important;
-          color: #ffffff !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }}
 
-        /* File Uploader FIX (Visual inconsistency in screenshot) */
+        /* File Uploader Styling */
         [data-testid="stFileUploadDropzone"] {{
-          background-color: var(--bg-surface) !important;
-          border: 1px dashed var(--border) !important;
-          border-radius: 8px !important;
-          color: var(--text-primary) !important;
+          border: 1px dashed rgba(151, 151, 151, 0.3) !important;
+          border-radius: var(--radius-md) !important;
+          background-color: rgba(151, 151, 151, 0.05) !important;
+          padding: 2rem !important;
         }}
         
-        [data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p {{
-          color: var(--text-secondary) !important;
+        /* Selectbox & Widgets */
+        div[data-baseweb="select"] {{
+          border-radius: var(--radius-sm) !important;
+        }}
+        
+        /* Settings Specific Layout */
+        .settings-section {{
+          margin-bottom: var(--space-8);
+        }}
+        
+        .settings-card {{
+          background-color: rgba(151, 151, 151, 0.05);
+          border: 1px solid rgba(151, 151, 151, 0.1);
+          border-radius: var(--radius-md);
+          padding: var(--space-5);
+          margin-bottom: var(--space-4);
         }}
 
-        /* Input Fields */
-        .stTextInput input, .stSelectbox div[data-baseweb="select"] {{
-          background-color: var(--bg-elevated) !important;
-          border: 1px solid var(--border) !important;
-          color: var(--text-primary) !important;
+        /* Tabs Styling */
+        [data-testid="stTabs"] [role="tablist"] {{
+          gap: 12px;
+        }}
+        
+        [data-testid="stTabs"] button[role="tab"] {{
+          background-color: transparent !important;
+          border: none !important;
+          font-weight: 500 !important;
         }}
 
-        /* Radio Buttons */
-        .stRadio label p {{
-          color: var(--text-primary) !important;
-        }}
-
-        /* History Items */
+        /* History Items Styling */
         .history-file-item {{
-          background-color: var(--bg-elevated) !important;
-          border: 1px solid var(--border) !important;
-          border-radius: 6px !important;
-          margin-bottom: 8px !important;
-          padding: 10px !important;
+          background-color: rgba(151, 151, 151, 0.08);
+          border: 1px solid rgba(151, 151, 151, 0.1);
+          padding: var(--space-3);
+          border-radius: var(--radius-sm);
+          margin-bottom: var(--space-2);
+          transition: background-color 0.2s;
+        }}
+        
+        .history-file-item:hover {{
+          background-color: rgba(151, 151, 151, 0.15);
+        }}
+        
+        .history-file-item-time {{
+          font-size: 0.75rem;
+          opacity: 0.6;
         }}
 
-        /* Divider */
-        hr {{
-          border-top: 1px solid var(--border) !important;
-        }}
-
-        /* Hide elements */
+        /* Hide Streamlit elements */
         #MainMenu, footer, header {{
           visibility: hidden !important;
         }}

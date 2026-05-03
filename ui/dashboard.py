@@ -161,26 +161,20 @@ class Dashboard:
                     st.markdown(f"**{self.texts.get('settings_theme_label', 'Theme')}**")
                     st.caption(self.texts.get("settings_theme_desc", "Choose between dark or light appearance."))
                 with c2:
-                    theme_options = {
-                        "dark": self.texts.get("settings_theme_dark", "Dark"),
-                        "light": self.texts.get("settings_theme_light", "Light")
-                    }
-                    current_theme_name = theme_options.get(st.session_state.theme, "Dark")
-                    selected_theme_name = st.radio(
-                        "Theme", 
-                        options=list(theme_options.values()), 
-                        index=list(theme_options.values()).index(current_theme_name),
+                    selected_theme = st.radio(
+                        self.texts.get("settings_theme_label", "Theme"),
+                        options=["dark", "light"],
+                        format_func=lambda x: self.texts.get(f"settings_theme_{x}", x),
+                        index=0 if st.session_state.get("theme", "dark") == "dark" else 1,
                         horizontal=True,
                         label_visibility="collapsed"
                     )
-                    
-                    for key, value in theme_options.items():
-                        if value == selected_theme_name and st.session_state.theme != key:
-                            st.session_state.theme = key
-                            prefs = Config.load_user_prefs()
-                            prefs["theme"] = key
-                            Config.save_user_prefs(prefs)
-                            st.rerun()
+
+                    if selected_theme != st.session_state.get("theme", "dark"):
+                        Config.switch_theme(selected_theme)
+                        st.session_state.theme = selected_theme
+                        st.info(self.texts.get("theme_restart_notice", 
+                                "Theme changed. Please refresh the page (F5) to apply."))
                 st.markdown("</div>", unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 

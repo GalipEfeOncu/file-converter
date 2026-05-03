@@ -11,6 +11,8 @@ Uygulamanın genel ayarlarını, API anahtarlarını, desteklenen dosya türleri
 import os
 import json
 import logging
+import subprocess
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -64,4 +66,38 @@ class Config:
             with open(Config.PREFS_PATH, "w", encoding="utf-8") as f:
                 json.dump(prefs, f, ensure_ascii=False, indent=4)
         except Exception as e:
-            logging.warning(f"Kullanıcı tercihleri kaydedilemedi: {e}")
+            logging.warning(f"Kullanıcı tercihlerini kaydedilemedi: {e}")
+
+    @staticmethod
+    def switch_theme(theme: str):
+        """
+        Switches theme by copying the correct config file and restarting.
+        theme: "dark" | "light"
+        """
+        streamlit_dir = Path(".streamlit")
+        target = streamlit_dir / "config.toml"
+        
+        if theme == "dark":
+            # Write dark config
+            target.write_text("""[theme]
+base = "dark"
+backgroundColor = "#0f1117"
+secondaryBackgroundColor = "#1a1d27"
+textColor = "#e8eaf0"
+primaryColor = "#5b6af0"
+font = "sans serif"
+""")
+        else:
+            # Write light config
+            target.write_text("""[theme]
+base = "light"
+backgroundColor = "#f5f6fa"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#0d0f1a"
+primaryColor = "#5b6af0"
+font = "sans serif"
+""")
+        
+        prefs = Config.load_user_prefs()
+        prefs["theme"] = theme
+        Config.save_user_prefs(prefs)

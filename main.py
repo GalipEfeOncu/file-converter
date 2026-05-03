@@ -42,6 +42,11 @@ def init_state():
 
     if "theme" not in st.session_state:
         st.session_state.theme = prefs.get("theme", "dark")
+    
+    # Apply the correct config.toml on startup
+    if "theme_initialized" not in st.session_state:
+        Config.switch_theme(st.session_state.theme)
+        st.session_state.theme_initialized = True
 
     if "active_tab" not in st.session_state:
         st.session_state.active_tab = "convert"

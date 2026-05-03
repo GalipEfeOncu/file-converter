@@ -111,7 +111,8 @@
         "pdf_next": "Sonraki ▶",
         "empty_state_convert": "Dönüştürmek istediğiniz dosyayı yükleyin.",
         "empty_state_view": "Görüntülemek istediğiniz dosyayı yükleyin.",
-        "empty_state_ai": "AI ile analiz etmek istediğiniz dosyayı yükleyin."
+        "empty_state_ai": "AI ile analiz etmek istediğiniz dosyayı yükleyin.",
+        "theme_restart_notice": "Tema değiştirildi. Uygulamak için sayfayı yenileyin (F5)."
     },
     "en": {
         "onboarding_title": "Welcome",
@@ -214,6 +215,7 @@
         "pdf_next": "Next ▶",
         "empty_state_convert": "Upload a file you want to convert.",
         "empty_state_view": "Upload a file you want to view.",
-        "empty_state_ai": "Upload a file you want to analyze with AI."
+        "empty_state_ai": "Upload a file you want to analyze with AI.",
+        "theme_restart_notice": "Theme changed. Refresh the page (F5) to apply."
     }
 }
