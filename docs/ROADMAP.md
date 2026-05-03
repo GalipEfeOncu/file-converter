@@ -242,15 +242,15 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **User Story:** _"Bir kullanıcı olarak, 10 görsele aynı anda WEBP'e çevirme, bir PDF'in her sayfasını ayrı PNG olarak alma ve birden çok PDF'i tek dosyada birleştirme imkânı istiyorum."_
 *   **AC (Acceptance Criteria):**
     - [ ] `FileConverter.batch_convert(input_paths: list[str], output_dir: str, target_format: str, **kwargs) -> dict[str, bool]` çalışır; her dosya için sonucu döner.
-    - [ ] `FileConverter.pdf_to_images(input_path: str, output_dir: str, image_format: str = "png", dpi: int = 150) -> list[str]` PyMuPDF ile her sayfayı kaydeder ve dosya yollarını döner.
-    - [ ] `FileConverter.merge_pdfs(input_paths: list[str], output_path: str) -> bool` PyPDF2 veya PyMuPDF ile birleştirir.
-    - [ ] Hatalar mevcut konvansiyona uygun: `bool` döner / boş liste döner; `logging.error` ile loglanır.
-    - [ ] `tests/test_converter.py` içine her yeni metot için en az 1 success + 1 failure unit testi.
+    - [x] `FileConverter.pdf_to_images(input_path: str, output_dir: str, image_format: str = "png", dpi: int = 150) -> list[str]` PyMuPDF ile her sayfayı kaydeder ve dosya yollarını döner.
+    - [x] `FileConverter.merge_pdfs(input_paths: list[str], output_path: str) -> bool` PyPDF2 veya PyMuPDF ile birleştirir.
+    - [x] Hatalar mevcut konvansiyona uygun: `bool` döner / boş liste döner; `logging.error` ile loglanır.
+    - [x] `tests/test_converter.py` içine her yeni metot için en az 1 success + 1 failure unit testi.
 *   **Görevler:**
-    - [ ] `pdf_to_images` ve `merge_pdfs` için PyPDF2 mı yoksa PyMuPDF mı kullanılacağını seç (perf + bağımlılık trade-off).
+    - [ ] `pdf_to_images` ve `merge_pdfs` için PyPDF2 mı yoksa PyMuPDF mı kullanılacağını seç (perf + bağımlılık trade-off). ✅ (PyMuPDF seçildi)
     - [ ] `batch_convert` içinde `convert_image / convert_csv_to_xlsx` gibi mevcut metotları dispatch et.
-    - [ ] `__init__` ya da modül seviyesi `_CONVERSION_REGISTRY: dict[tuple[str, str], Callable]` ile dispatch tablosu oluştur (opsiyonel ama önerilir).
-    - [ ] PR açıklamasında PDF birleştirme için seçilen kütüphaneyi gerekçeli yaz.
+    - [x] `__init__` ya da modül seviyesi `_CONVERSION_REGISTRY: dict[tuple[str, str], Callable]` ile dispatch tablosu oluştur (opsiyonel ama önerilir).
+    - [x] PR açıklamasında PDF birleştirme için seçilen kütüphaneyi gerekçeli yaz.
 
 ### 🟡 Issue #18: AI Sekmesi UI — Özet / Q&A / Anahtar Kelime Akışları
 *   **Sorumlu:** **Abdulkadir Sar**
@@ -293,7 +293,7 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **User Story:** _"Bir QA olarak, AI metotlarının quota harcamadan testlerinin geçtiğini ve toplu dönüşüm metotlarının yan etki bırakmadığını otomatize etmek istiyorum."_
 *   **AC (Acceptance Criteria):**
     - [x] `tests/test_ai_engine.py` içinde her public AI metodu için en az 1 test (mock ile). ✅ (Issue #16 raporu — 25 test zaten mevcut)
-    - [ ] `tests/test_converter.py` `batch_convert` için hem hepsi başarılı hem 1'i fail senaryosu. (BLOKAJ — batch_convert mevcut ama test eksik, Issue #17 Said'de)
+    - [x] `tests/test_converter.py` `batch_convert` için hem hepsi başarılı hem 1'i fail senaryosu. ✅ (test_batch_convert_success/failure mevcut)
     - [ ] `pdf_to_images` testinde tmp_path üzerinde çıkış dosyalarının gerçekten yaratıldığını assert eden test.
     - [ ] `merge_pdfs` testinde sayfa sayısının = sum(input pages) olduğu doğrulanır.
     - [x] `pytest` koşum süresi tüm testler için < 20 saniye. ✅ (0.96s)
@@ -333,16 +333,16 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** Görsel dönüşüm için kullanıcı dostu kalite preset'leri (`low/medium/high/lossless`); PDF→DOCX dönüşümünde sayfa aralığı parametresi; RTF/ODT input desteği için araştırma + uygulama.
 *   **User Story:** _"Bir kullanıcı olarak, 'kalite: %75' yazmak yerine 'Yüksek/Orta/Düşük' seçmek; uzun bir PDF'in sadece 5-10 sayfa aralığını DOCX'e çevirmek; RTF/ODT dosyalarını da dönüştürmek istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] `FileConverter.QUALITY_PRESETS: dict[str, int] = {"low": 50, "medium": 75, "high": 90, "lossless": 100}` modül seviyesinde sabit.
-    - [ ] `convert_image` parametresi `quality: int | str = 100`; string verilirse preset'ten okur.
-    - [ ] `convert_pdf_to_docx(input, output, start: int = 0, end: int | None = None)` parametreleri eklenir.
-    - [ ] RTF/ODT için en az read (DOCX'e çevirme) desteği — `pypandoc` veya `striprtf` opsiyonu değerlendirilir.
-    - [ ] Mevcut testler kırılmaz; yeni unit testler eklenir.
+    - [x] `FileConverter.QUALITY_PRESETS: dict[str, int] = {"low": 50, "medium": 75, "high": 90, "lossless": 100}` modül seviyesinde sabit.
+    - [x] `convert_image` parametresi `quality: int | str = 100`; string verilirse preset'ten okur.
+    - [x] `convert_pdf_to_docx(input, output, start: int = 0, end: int | None = None)` parametreleri eklenir.
+    - [x] RTF/ODT için en az read (DOCX'e çevirme) desteği — `pypandoc` veya `striprtf` opsiyonu değerlendirilir. ✅ (pypandoc kullanıldı)
+    - [x] Mevcut testler kırılmaz; yeni unit testler eklenir.
 *   **Görevler:**
-    - [ ] Preset constant'ı + parametre güncellemesi.
-    - [ ] PDF→DOCX page range parametre yayılımı (UI'a kadar).
-    - [ ] RTF/ODT için kütüphane seçimi + PR açıklamasında gerekçe.
-    - [ ] `requirements.txt`'ye yeni paket ekleme (Ali koordinasyonu).
+    - [x] Preset constant'ı + parametre güncellemesi.
+    - [x] PDF→DOCX page range parametre yayılımı (UI'a kadar).
+    - [x] RTF/ODT için kütüphane seçimi + PR açıklamasında gerekçe.
+    - [x] `requirements.txt`'ye yeni paket ekleme (Ali koordinasyonu).
 
 ### 🟡 Issue #23: Açık Tema, Responsive Layout ve Animasyonlar
 *   **Sorumlu:** **Samet Demir**
@@ -425,28 +425,28 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Özet:** FFmpeg binary'sini `assets/bin/` altına bundle etmek; `core/player.py`'nin önce bundle'lanmış FFmpeg'i, yoksa sistem PATH'ini kullanmasını sağlamak.
 *   **User Story:** _"Bir kullanıcı olarak, FFmpeg'i ayrıca indirip kurmak zorunda kalmadan ses dönüşümü yapabilmek istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] `assets/bin/` altına Windows FFmpeg static build (LGPL) yerleştirilir.
-    - [ ] `AudioConverter.__init__` önce `assets/bin/ffmpeg.exe`'yi kontrol eder, yoksa `shutil.which("ffmpeg")` fallback.
-    - [ ] `pydub.AudioSegment.converter` global değişkeni doğru path'e set edilir.
-    - [ ] `.gitignore`'a `assets/bin/` eklenir; binary git'e commit edilmez ama build script'i indirir.
-    - [ ] `scripts/download_ffmpeg.py` script'i build aşamasında otomatik indirir.
-    - [ ] Linux/macOS için aynı stratejinin notu `docs/BUILD.md`'de belgelenir (Sprint 6 scope: yalnızca Windows).
+    - [x] `assets/bin/` altına Windows FFmpeg static build (LGPL) yerleştirilir. ✅ (Scripts ile yönetiliyor)
+    - [x] `AudioConverter.__init__` önce `assets/bin/ffmpeg.exe`'yi kontrol eder, yoksa `shutil.which("ffmpeg")` fallback.
+    - [x] `pydub.AudioSegment.converter` global değişkeni doğru path'e set edilir.
+    - [x] `.gitignore`'a `assets/bin/` eklenir; binary git'e commit edilmez ama build script'i indirir.
+    - [x] `scripts/download_ffmpeg.py` script'i build aşamasında otomatik indirir.
+    - [x] Linux/macOS için aynı stratejinin notu `docs/BUILD.md`'de belgelenir (Sprint 6 scope: yalnızca Windows).
 *   **Görevler:**
-    - [ ] FFmpeg LGPL static build URL kararlaştır (gyan.dev veya BtbN).
-    - [ ] `download_ffmpeg.py` yaz.
-    - [ ] `AudioConverter` path resolver güncellemesi.
-    - [ ] PyInstaller `.spec`'e `assets/bin/ffmpeg.exe` `binaries` olarak eklenir (Galip Efe ile koordinasyon).
+    - [x] FFmpeg LGPL static build URL kararlaştır (gyan.dev veya BtbN).
+    - [x] `download_ffmpeg.py` yaz.
+    - [x] `AudioConverter` path resolver güncellemesi.
+    - [x] PyInstaller `.spec`'e `assets/bin/ffmpeg.exe` `binaries` olarak eklenir (Galip Efe ile koordinasyon).
 
 ### 🟡 Issue #28: Onboarding Akışı + Boş Durum Tasarımları + Hata Sayfaları
 *   **Sorumlu:** **Samet Demir**
 *   **Özet:** İlk açılışta gösterilen "Welcome / Onboarding" overlay'i; tüm sekmelerin "boş durum" (empty state) görselleri ve micro-illustration'ları; 500 / network error için kullanıcı dostu hata sayfası bileşeni.
 *   **User Story:** _"İlk kez açan kullanıcı olarak, ne yapmam gerektiğini 30 saniyede anlamak; bir hata olduğunda 'Bir şey ters gitti' yerine ne yapmam gerektiğini söyleyen bir mesaj almak istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [ ] İlk açılışta (`prefs.json`'da `onboarding_seen=False` ise) modal/expander ile 3 adımlı tanıtım gösterilir.
-    - [ ] "Anladım" butonu `onboarding_seen=True` olarak kaydeder.
+    - [x] İlk açılışta (`prefs.json`'da `onboarding_seen=False` ise) modal/expander ile 3 adımlı tanıtım gösterilir.
+    - [x] "Anladım" butonu `onboarding_seen=True` olarak kaydeder.
     - [ ] Her tab boş durumunda: ikon + başlık + alt yazı + CTA buton ("Dosya Yükle").
     - [ ] App icon (.ico + .png 512x512) hazırlanır (Galip Efe için).
-    - [ ] `i18n` yeni anahtarlar: `onboarding_step_1/2/3`, `onboarding_dismiss`, `empty_state_convert`, `empty_state_view`, `empty_state_ai`.
+    - [x] `i18n` yeni anahtarlar: `onboarding_step_1/2/3`, `onboarding_dismiss`, `empty_state_convert`, `empty_state_view`, `empty_state_ai`.
 *   **Görevler:**
     - [ ] Onboarding component (modal yerine `st.expander` + `st.session_state.onboarding_seen` ile).
     - [ ] Empty state bileşenleri (re-usable function).

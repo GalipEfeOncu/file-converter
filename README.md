@@ -82,7 +82,13 @@ Follow these steps to get the project running locally.
 |---|---|
 | **Python** | Version 3.10 or higher |
 | **pip** | Comes bundled with Python |
-| **FFmpeg** | Required for audio conversion — [download here](https://ffmpeg.org/download.html) |
+| **FFmpeg** | Required for audio conversion (bundled on Windows, install on Linux/macOS) |
+| **pandoc** | Required for RTF/ODT support — [install here](https://pandoc.org/installing.html) |
+
+**Installing pandoc:**
+- **Windows:** `choco install pandoc` or use the installer.
+- **macOS:** `brew install pandoc`
+- **Linux:** `sudo apt install pandoc`
 
 ### Step 1 — Clone the Repository
 

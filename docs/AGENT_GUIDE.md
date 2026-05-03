@@ -487,6 +487,7 @@ Bu dosya tek başına yetersiz kaldığında:
 - **`docs/ROADMAP.md`** — 6 haftalık sprint planı + issue listesi (TR).
 - **`docs/TASK_DISTRIBUTION.md`** — Modül sahipliği ve sorumluluklar (TR).
 - **`docs/WEEKLY_PROGRESS_ALI.md`** — QA haftalık raporu (EN).
+- **`reports/qa/`** — Regression test logs and E2E test matrix (v0.1.0 release readiness).
 - **`README.md`** — Kurulum + kullanıcı belgesi (EN).
 
 ---

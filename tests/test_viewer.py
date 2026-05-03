@@ -57,8 +57,10 @@ class TestDisplayImage:
 
         fv = FileViewer()
         with patch("core.viewer.st.image") as mock_st_image:
-            fv.display_image(str(img_file))
-            mock_st_image.assert_called_once_with(str(img_file), use_container_width=True)
+            # st.radio'yu mockla ki "Fit" dönsün (varsayılan)
+            with patch("core.viewer.st.radio", return_value="Fit"):
+                fv.display_image(str(img_file))
+                mock_st_image.assert_called_once_with(str(img_file), use_container_width=True)
 
     def test_display_image_missing_file_does_not_raise(self, tmp_path: Path):
         """Hata senaryosu: eksik dosya exception fırlatmamalı; st.error çağrılmalı."""
@@ -276,6 +278,9 @@ class TestRenderPdfPagination:
         mock_doc.load_page.return_value = mock_page
         mock_doc.__len__ = MagicMock(return_value=10)
 
+        from core.viewer import st
+        st.cache_data.clear()
+
         with patch("core.viewer.fitz.open", return_value=mock_doc):
             result = fv.render_pdf("fake.pdf", start=0, end=1)
 
@@ -296,6 +301,9 @@ class TestRenderPdfPagination:
         mock_doc.load_page.return_value = mock_page
         mock_doc.__len__ = MagicMock(return_value=PAGE_COUNT)
 
+        from core.viewer import st
+        st.cache_data.clear()
+
         with patch("core.viewer.fitz.open", return_value=mock_doc):
             result = fv.render_pdf("fake.pdf")
 
@@ -313,6 +321,9 @@ class TestRenderPdfPagination:
         mock_page.get_pixmap.return_value = mock_pixmap
         mock_doc.load_page.return_value = mock_page
         mock_doc.__len__ = MagicMock(return_value=3)
+
+        from core.viewer import st
+        st.cache_data.clear()
 
         with patch("core.viewer.fitz.open", return_value=mock_doc):
             result = fv.render_pdf("fake.pdf", start=0, end=999)
@@ -411,7 +422,7 @@ def test_display_image_fit_mode(monkeypatch, tmp_path: Path):
     FileViewer().display_image(str(img_path))
 
     assert calls["kwargs"].get("use_container_width") is True
-    assert calls["data"] == b"fake-png-bytes"
+    assert calls["data"] == str(img_path)
 
 
 def test_display_image_100_mode(monkeypatch, tmp_path: Path):

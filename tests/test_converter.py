@@ -474,3 +474,27 @@ def test_convert_odt_to_docx_failure(tmp_path: Path, monkeypatch):
 
     assert result is False
     assert not output.exists()
+def test_batch_convert_kwargs_filtering(tmp_path: Path, monkeypatch):
+    """[B-1] Batch convert'e gecersiz kwarg gecildiginde crash olmamali."""
+    source = tmp_path / "test.pdf"
+    output_dir = tmp_path / "output"
+    source.write_bytes(b"%PDF-1.4 fake")
+    
+    # PDF to DOCX donusumunu mock et (quality kabul etmez)
+    call_log = {"called": False}
+    class FakeConverter:
+        def __init__(self, *args, **kwargs): pass
+        def convert(self, output_path, start=0, end=None):
+            call_log["called"] = True
+            Path(output_path).write_bytes(b"done")
+        def close(self): pass
+        
+    monkeypatch.setattr(converter_module, "Converter", FakeConverter)
+    
+    # batch_convert'i quality=80 ile cagir (PDF -> DOCX donusumu quality almaz)
+    # Eger kwargs filtresi yoksa TypeError: convert() got an unexpected keyword argument 'quality' firlatacak
+    fc = FileConverter()
+    result = fc.batch_convert([str(source)], str(output_dir), "docx", quality=80)
+    
+    assert result[str(source)] is True
+    assert call_log["called"] is True

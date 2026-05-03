@@ -13,6 +13,7 @@ import json
 from config.settings import Config
 from ui.styles import apply_custom_css
 from ui.dashboard import Dashboard
+from ui.onboarding import show_onboarding
 
 
 def load_languages():
@@ -36,8 +37,8 @@ def init_state():
     """
     prefs = Config.load_user_prefs()
 
-    if "language" not in st.session_state:  # Hafızada language yok ise tr olarak atar
-        st.session_state.language = prefs.get("language", "tr")
+    if "language" not in st.session_state:
+        st.session_state.language = prefs.get("language", "en")
 
     if "theme" not in st.session_state:
         st.session_state.theme = prefs.get("theme", "dark")
@@ -50,6 +51,12 @@ def init_state():
     
     if "file_history" not in st.session_state:
         st.session_state.file_history = []
+
+    if "onboarding_seen" not in st.session_state:
+        st.session_state.onboarding_seen = prefs.get("onboarding_seen", False)
+    
+    if "show_settings" not in st.session_state:
+        st.session_state.show_settings = False
 
 
 def main():
@@ -67,8 +74,16 @@ def main():
     # Sidebar'ı render et (Samet Demir - Modern sidebar with File History & Language Selection)
     dashboard.render_sidebar()
     
-    # Ana alanı render et (Samet Demir - st.tabs entegrasyonu)
-    dashboard.render_main_area()
+    # Onboarding kontrolü
+    if not st.session_state.onboarding_seen:
+        show_onboarding(texts)
+        return
+
+    # Ana alanı veya Ayarlar sayfasını render et
+    if st.session_state.get("show_settings"):
+        dashboard.render_settings_page()
+    else:
+        dashboard.render_main_area()
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ from PIL import Image
 from pdf2docx import Converter
 from docx2pdf import convert as docx2pdf_convert
 import pypandoc
+import inspect
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 
@@ -84,21 +85,61 @@ class FileConverter:
         except Exception as e:
             logging.error(f"DOCX->PDF Hatası: {e}"); return False
 
+    _CONVERSION_REGISTRY = {
+        # format: (method_name, extra_kwargs)
+        (".pdf", "docx"): "convert_pdf_to_docx",
+        (".docx", "pdf"): "convert_docx_to_pdf",
+        (".docx", "txt"): "convert_docx_to_txt",
+        (".csv", "xlsx"): "convert_csv_to_xlsx",
+        (".xlsx", "csv"): "convert_xlsx_to_csv",
+        (".rtf", "docx"): "convert_rtf_to_docx",
+        (".odt", "docx"): "convert_odt_to_docx",
+        # Image extensions (dynamically handled in batch_convert or explicitly listed)
+    }
+
     def batch_convert(self, input_paths, output_dir, target_format, **kwargs):
+        """Toplu dosya dönüştürme işlemi. Registry üzerinden uygun metodu bulur."""
         if not os.path.exists(output_dir): os.makedirs(output_dir)
         results = {}
+        target = target_format.lower()
+        
+        image_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+        
         for path in input_paths:
             ext = os.path.splitext(path)[1].lower()
-            out = os.path.join(output_dir, f"converted_{os.path.basename(path)}.{target_format.lower()}")
-            results[path] = self.convert_image(path, out, target_format, **kwargs)
+            out_name = f"converted_{os.path.basename(path).split('.')[0]}.{target}"
+            out_path = os.path.join(output_dir, out_name)
+            
+            # 1. Registry kontrolü
+            method_name = self._CONVERSION_REGISTRY.get((ext, target))
+            if method_name:
+                method = getattr(self, method_name)
+                sig = inspect.signature(method)
+                filtered_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+                results[path] = method(path, out_path, **filtered_kwargs)
+            
+            # 2. Görsel dönüşüm (Generic handling)
+            elif ext in image_exts and target in {"jpg", "jpeg", "png", "webp", "bmp"}:
+                sig = inspect.signature(self.convert_image)
+                filtered_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+                results[path] = self.convert_image(path, out_path, target, **filtered_kwargs)
+            
+            else:
+                logging.warning(f"Batch: {ext} -> {target} için uygun dönüştürücü bulunamadı.")
+                results[path] = False
+                
         return results
 
     def pdf_to_images(self, input_path, output_dir, image_format="png", dpi=150):
+        """PDF sayfalarını tekil görsellere dönüştürür."""
         try:
             if not os.path.exists(output_dir): os.makedirs(output_dir)
             doc = fitz.open(input_path); saved = []
             for i, page in enumerate(doc):
-                pix = page.get_pixmap(matrix=fitz.Matrix(dpi/72, dpi/72))
+                # Matrix ile DPI ayarı (default 72'dir)
+                zoom = dpi / 72
+                mat = fitz.Matrix(zoom, zoom)
+                pix = page.get_pixmap(matrix=mat)
                 out = os.path.join(output_dir, f"p_{i+1}.{image_format}")
                 pix.save(out); saved.append(out)
             doc.close(); return saved
@@ -106,6 +147,7 @@ class FileConverter:
             logging.error(f"PDF->IMG Hatası: {e}"); return []
 
     def merge_pdfs(self, input_paths, output_path):
+        """Birden fazla PDF dosyasını tek bir dosyada birleştirir."""
         try:
             res = fitz.open()
             for p in input_paths:

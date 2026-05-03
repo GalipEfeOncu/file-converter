@@ -1,26 +1,13 @@
 """
 ui/styles.py — CSS ve Görsel Özelleştirme
 Sahibi: Samet Demir (Arayüz Tasarımcısı)
-
-Senin Görevin:
-Uygulamayı Streamlit'in standart görünümünden çıkarıp, özel CSS enjeksiyonları ile kurumsal ve modern bir tasarıma (karanlık tema, özel butonlar vb.) kavuşturmak.
-
-Çıktı: "Uygulama geneline uygulanan modern CSS stilleri."
 """
 
 import streamlit as st
 
 
 def apply_custom_css(theme: str = "dark"):
-    """Uygulama geneline özel CSS enjekte eder.
-
-    Bu fonksiyon:
-    - Kurumsal renk paleti ve tipografi (CSS değişkenleri / design tokens)
-    - Streamlit bileşenlerinin (buton, girdi, kenar çubuğu vb.) yeniden stillenmesi
-    - Sayfa genelinde modern bir karanlık tema uygulanması
-
-    Kullandığınız renkleri / fontu değiştirmek için aşağıdaki :root blokundaki değişkenleri düzenleyin.
-    """
+    """Uygulama geneline özel CSS enjekte eder."""
     
     # Try to read theme from session_state if available, falling back to passed parameter
     try:
@@ -29,357 +16,185 @@ def apply_custom_css(theme: str = "dark"):
     except Exception:
         pass
 
-    custom_css = """
-    <style>
-        /* --- Kurumsal Tasarım Sistemi (Renk & Tipografi) --- */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
+    # Design Tokens
+    if theme == "light":
+        colors = """
         :root {
-            /* Renk Paleti */
-            --brand-primary: #0052CC; /* Canlı mavi */
-            --brand-secondary: #FFAB00; /* Canlı turuncu */
-            --brand-accent: #00D6A7; /* Canlı yeşil */
-            --bg-base: #0b1220; /* Ana arka plan */
-            --bg-surface: #111b30; /* Kart arka planı */
-            --bg-surface-2: #1c2a4a; /* Kart arka planı 2 */
-            --text-primary: #f2f7ff; /* Ana metin */
-            --text-secondary: rgba(242, 247, 255, 0.75); /* İkincil metin */
-            --border: rgba(242, 247, 255, 0.12);
-            --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-            --radius: 14px;
-
-            /* Tipografi */
-            --font-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-            --text-size-base: 15px;
-            --text-size-lg: 18px;
-            --text-size-sm: 13px;
-            --heading-weight: 700;
-            --body-weight: 400;
+          --bg-base: #f8f9fc;
+          --bg-surface: #ffffff;
+          --bg-elevated: #f1f4f9;
+          --border: #e2e8f0;
+          --text-primary: #1e293b;
+          --text-secondary: #64748b;
+          --accent: #5b6af0;
+          --accent-hover: #4a59e8;
+          --success: #10b981;
+          --error: #ef4444;
+          --warning: #f59e0b;
         }
-
-        /* Sayfa genelini ayarla */
-        html, body, [data-testid="stAppViewContainer"] {
-            background: var(--bg-base) !important;
-            color: var(--text-primary) !important;
-            font-family: var(--font-base) !important;
-            font-size: var(--text-size-base) !important;
-        }
-
-        /* Başlıklar */
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: var(--heading-weight) !important;
-            letter-spacing: 0.02em;
-        }
-
-        /* Metin ve label */
-        p, span, label, div, .css-1dp5vir {
-            color: var(--text-primary) !important;
-        }
-
-        /* Sidebar */
-        [data-testid="stSidebar"] > div:first-child {
-            background: linear-gradient(180deg, rgba(5, 65, 119, 0.95) 0%, rgba(12, 16, 33, 0.95) 100%) !important;
-            border-right: 1px solid var(--border) !important;
-        }
-        
-        /* Sidebar responsive collapse */
-        @media (max-width: 768px) {
-            [data-testid="stSidebar"] {
-                min-width: 320px !important;
-            }
-        }
-
-        /* Buttonlar */
-        .stButton>button,
-        button[kind="secondary"] {
-            background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent)) !important;
-            border: 1px solid rgba(255,255,255,0.15) !important;
-            border-radius: var(--radius) !important;
-            box-shadow: var(--shadow) !important;
-            color: #ffffff !important;
-            padding: 0.65rem 1.1rem !important;
-            font-weight: 600 !important;
-            transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
-        }
-
-        .stButton>button:hover {
-            transform: translateY(-1px) !important;
-            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.45) !important;
-            background: linear-gradient(135deg, var(--brand-secondary), var(--brand-accent)) !important;
-        }
-
-        .stButton>button:active {
-            transform: translateY(0) !important;
-            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35) !important;
-        }
-
-        /* Input / Select / Textarea */
-        input, textarea, select {
-            background: rgba(255, 255, 255, 0.06) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            border-radius: 10px !important;
-            color: var(--text-primary) !important;
-            padding: 0.6rem 0.8rem !important;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none !important;
-            border-color: rgba(0, 210, 167, 0.9) !important;
-            box-shadow: 0 0 0 3px rgba(0, 214, 167, 0.25) !important;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.04);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.35);
-        }
-
-        /* --- Dosya Yükleyici (File Uploader) Tasarımı --- */
-        /* Sürükle-bırak kutusu stillemesi */
-        [data-testid="stFileUploadDropzone"] {
-            background: linear-gradient(135deg, rgba(5, 82, 204, 0.15), rgba(0, 214, 167, 0.1)) !important;
-            border: 2px dashed rgba(0, 214, 167, 0.5) !important;
-            border-radius: var(--radius) !important;
-            padding: 30px 20px !important;
-            transition: all 200ms ease !important;
-        }
-
-        [data-testid="stFileUploadDropzone"]:hover {
-            background: linear-gradient(135deg, rgba(5, 82, 204, 0.25), rgba(0, 214, 167, 0.2)) !important;
-            border-color: rgba(0, 214, 167, 0.8) !important;
-            box-shadow: 0 8px 24px rgba(0, 214, 167, 0.2) !important;
-        }
-
-        /* Dosya yükleyici içindeki metin */
-        [data-testid="stFileUploadDropzone"] > div {
-            color: rgba(242, 247, 255, 0.8) !important;
-            font-weight: 500 !important;
-        }
-
-        /* Dosya yükleyici ikon */
-        [data-testid="stFileUploadDropzone"] svg {
-            color: rgba(0, 214, 167, 0.7) !important;
-        }
-
-        /* Browse button */
-        [data-testid="stFileUploadDropzone"] > button {
-            background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent)) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 10px !important;
-            padding: 8px 16px !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            margin-top: 10px !important;
-            transition: all 150ms ease !important;
-        }
-
-        [data-testid="stFileUploadDropzone"] > button:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 20px rgba(0, 82, 204, 0.4) !important;
-        }
-
-        /* Yüklenen dosya gösterimi */
-        [data-testid="stFileUploadDropzone"] + div {
-            margin-top: 15px !important;
-        }
-
-        /* Tabs Tasarımı */
-        [data-testid="stTabs"] [role="tablist"] {
-            border-bottom: 2px solid rgba(242, 247, 255, 0.1) !important;
-            gap: 5px !important;
-        }
-        
-        [data-testid="stTabs"] [role="tabpanel"] {
-            animation: fadeIn 200ms ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        [data-testid="stTabs"] button[role="tab"] {
-            background: transparent !important;
-            color: rgba(242, 247, 255, 0.6) !important;
-            border-bottom: 3px solid transparent !important;
-            padding: 12px 20px !important;
-            font-weight: 600 !important;
-            transition: all 200ms ease !important;
-        }
-
-        [data-testid="stTabs"] button[role="tab"]:hover {
-            color: rgba(242, 247, 255, 0.9) !important;
-            border-bottom-color: rgba(0, 214, 167, 0.4) !important;
-        }
-
-        [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
-            color: var(--brand-accent) !important;
-            border-bottom: 3px solid transparent !important;
-            border-image: linear-gradient(90deg, var(--brand-primary), var(--brand-accent)) 1 !important;
-        }
-
-        /* Uyarılar (Alerts & Toasts) - Başarı ve Hata Varyantları */
-        [data-testid="stAlert"] {
-            border-radius: var(--radius) !important;
-            font-weight: 600 !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            box-shadow: var(--shadow) !important;
-        }
-        
-        /* st.success ve st.error'un varsayılan arka planını hafif şeffaf yaparak brand hissiyatı ver */
-        [data-testid="stAlert"] {
-            backdrop-filter: blur(10px);
-        }
-
-        /* Sidebar öğeleri */
-        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:has(> .stRadio) {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border-radius: var(--radius) !important;
-            padding: 8px !important;
-            margin: 8px 0 !important;
-        }
-
-        /* Radio butonları */
-        .stRadio > label {
-            color: rgba(242, 247, 255, 0.85) !important;
-            font-weight: 500 !important;
-            padding: 8px 12px !important;
-            border-radius: 8px !important;
-            cursor: pointer !important;
-            transition: all 150ms ease !important;
-        }
-
-        .stRadio > label:hover {
-            background: rgba(0, 214, 167, 0.15) !important;
-        }
-
-        .stRadio input[type="radio"]:checked + span {
-            color: var(--brand-accent) !important;
-        }
-
-        /* Expander (Ayarlar vb.) */
-        [data-testid="stExpander"] > summary {
-            color: rgba(242, 247, 255, 0.8) !important;
-            font-weight: 600 !important;
-            padding: 12px !important;
-            background: rgba(0, 214, 167, 0.08) !important;
-            border-radius: 8px !important;
-            cursor: pointer !important;
-            transition: all 150ms ease !important;
-        }
-
-        [data-testid="stExpander"] > summary:hover {
-            background: rgba(0, 214, 167, 0.15) !important;
-        }
-        
-        /* Geçmiş Dosya Öğeleri (Dark Theme Defaults) */
-        .history-file-item {
-            background: rgba(255, 255, 255, 0.04) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            color: rgba(242, 247, 255, 0.7) !important;
-        }
-        .history-file-item-time {
-            color: rgba(242, 247, 255, 0.5) !important;
-        }
-
-        /* Streamlit varsayılan üst menü ve footer gizleme */
-        #MainMenu { visibility: hidden; }
-        footer { visibility: hidden; }
-    </style>
-    """
-
-    light_theme_css = """
-    <style>
+        """
+    else:
+        colors = """
         :root {
-            /* Renk Paleti - Light Theme */
-            --brand-primary: #0052CC;
-            --brand-secondary: #FFAB00;
-            --brand-accent: #00D6A7;
-            --bg-base: #f7f9fc;
-            --bg-surface: #ffffff;
-            --bg-surface-2: #eef2f6;
-            --text-primary: #0b1220;
-            --text-secondary: rgba(11, 18, 32, 0.75);
-            --border: rgba(11, 18, 32, 0.12);
-            --shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+          --bg-base: #0f1117;
+          --bg-surface: #1a1d27;
+          --bg-elevated: #222536;
+          --border: #2e3147;
+          --text-primary: #e8eaf0;
+          --text-secondary: #8b8fa8;
+          --accent: #5b6af0;
+          --accent-hover: #4a59e8;
+          --success: #3d9970;
+          --error: #e05c5c;
+          --warning: #d4924a;
         }
+        """
 
-        /* Sidebar Light Theme */
-        [data-testid="stSidebar"] > div:first-child {
-            background: linear-gradient(180deg, rgba(235, 242, 250, 0.95) 0%, rgba(247, 249, 252, 0.95) 100%) !important;
-        }
+    custom_css = f"""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* Input / Select / Textarea Light Theme */
-        input, textarea, select {
-            background: rgba(0, 0, 0, 0.03) !important;
-            border: 1px solid rgba(0, 0, 0, 0.12) !important;
-        }
+        {colors}
 
-        /* Dosya Yükleyici Light Theme */
-        [data-testid="stFileUploadDropzone"] {
-            background: linear-gradient(135deg, rgba(5, 82, 204, 0.05), rgba(0, 214, 167, 0.05)) !important;
-            border-color: rgba(0, 214, 167, 0.4) !important;
-        }
-        [data-testid="stFileUploadDropzone"] > div {
-            color: rgba(11, 18, 32, 0.8) !important;
-        }
+        :root {{
+          --radius-sm: 6px;
+          --radius-md: 8px;
+          --space-1: 4px;
+          --space-2: 8px;
+          --space-3: 12px;
+          --space-4: 16px;
+          --space-5: 20px;
+          --space-6: 24px;
+          --space-8: 32px;
+          --space-10: 40px;
+        }}
+
+        /* Global Reset */
+        * {{
+          font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif !important;
+          -webkit-font-smoothing: antialiased;
+        }}
+
+        html, body, [data-testid="stAppViewContainer"] {{
+          background-color: var(--bg-base) !important;
+          color: var(--text-primary) !important;
+        }}
+
+        /* Sidebar Alignment & Color */
+        [data-testid="stSidebar"] {{
+          background-color: var(--bg-surface) !important;
+          border-right: 1px solid var(--border) !important;
+        }}
         
-        /* Tabs Light Theme */
-        [data-testid="stTabs"] [role="tablist"] {
-            border-bottom-color: rgba(0, 0, 0, 0.1) !important;
-        }
-        [data-testid="stTabs"] button[role="tab"] {
-            color: rgba(11, 18, 32, 0.6) !important;
-        }
-        [data-testid="stTabs"] button[role="tab"]:hover {
-            color: rgba(11, 18, 32, 0.9) !important;
-        }
+        [data-testid="stSidebarContent"] {{
+          background-color: var(--bg-surface) !important;
+          padding: var(--space-6) var(--space-5) !important;
+        }}
 
-        /* Sidebar Elements Light Theme */
-        .stRadio > label {
-            color: rgba(11, 18, 32, 0.85) !important;
-        }
-        [data-testid="stExpander"] > summary {
-            color: rgba(11, 18, 32, 0.8) !important;
-            background: rgba(0, 214, 167, 0.1) !important;
-        }
-        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div:has(> .stRadio) {
-            background: rgba(0, 0, 0, 0.02) !important;
-        }
+        /* Typography Scale */
+        h1 {{ 
+          font-size: 20px !important; 
+          font-weight: 600 !important; 
+          letter-spacing: -0.01em !important; 
+          margin-bottom: var(--space-1) !important; 
+          color: var(--text-primary) !important;
+        }}
+        h2 {{ 
+          font-size: 15px !important; 
+          font-weight: 600 !important; 
+          letter-spacing: -0.005em !important; 
+          margin-bottom: 2px !important; 
+          color: var(--text-primary) !important;
+        }}
+        h3 {{ 
+          font-size: 13px !important; 
+          font-weight: 500 !important; 
+          color: var(--text-secondary) !important; 
+        }}
+
+        /* Main Content Area */
+        [data-testid="stMainBlockContainer"] {{
+          padding: var(--space-8) var(--space-10) !important;
+          max-width: 960px !important;
+        }}
+
+        /* Cards and Containers */
+        .settings-card, .st-emotion-cache-12w0qpk {{ 
+          background-color: var(--bg-surface) !important;
+          padding: 16px 20px !important; 
+          border: 1px solid var(--border) !important; 
+          border-radius: 8px !important;
+          margin-bottom: 12px !important;
+        }}
+
+        /* Buttons */
+        .stButton > button {{
+          height: 36px !important;
+          padding: 0 16px !important;
+          font-size: 13px !important;
+          font-weight: 500 !important;
+          border-radius: 6px !important;
+          border: 1px solid var(--border) !important;
+          background: var(--bg-elevated) !important;
+          color: var(--text-primary) !important;
+          transition: all 150ms ease !important;
+        }}
         
-        /* History Files Light Theme */
-        .history-file-item {
-            background: rgba(0, 0, 0, 0.03) !important;
-            border-color: rgba(0, 0, 0, 0.06) !important;
-            color: rgba(11, 18, 32, 0.8) !important;
-        }
-        .history-file-item-time {
-            color: rgba(11, 18, 32, 0.5) !important;
-        }
+        .stButton > button:hover {{
+          background: var(--accent) !important;
+          border-color: var(--accent) !important;
+          color: #ffffff !important;
+        }}
+        
+        .stButton > button[kind="primary"] {{
+          background: var(--accent) !important;
+          border-color: var(--accent) !important;
+          color: #ffffff !important;
+        }}
 
-        /* Button Light Theme */
-        .stButton>button:hover,
-        button[kind="secondary"]:hover {
-            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.15) !important;
-        }
-        .stButton>button:active,
-        button[kind="secondary"]:active {
-            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.1) !important;
-        }
+        /* File Uploader FIX (Visual inconsistency in screenshot) */
+        [data-testid="stFileUploadDropzone"] {{
+          background-color: var(--bg-surface) !important;
+          border: 1px dashed var(--border) !important;
+          border-radius: 8px !important;
+          color: var(--text-primary) !important;
+        }}
+        
+        [data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p {{
+          color: var(--text-secondary) !important;
+        }}
+
+        /* Input Fields */
+        .stTextInput input, .stSelectbox div[data-baseweb="select"] {{
+          background-color: var(--bg-elevated) !important;
+          border: 1px solid var(--border) !important;
+          color: var(--text-primary) !important;
+        }}
+
+        /* Radio Buttons */
+        .stRadio label p {{
+          color: var(--text-primary) !important;
+        }}
+
+        /* History Items */
+        .history-file-item {{
+          background-color: var(--bg-elevated) !important;
+          border: 1px solid var(--border) !important;
+          border-radius: 6px !important;
+          margin-bottom: 8px !important;
+          padding: 10px !important;
+        }}
+
+        /* Divider */
+        hr {{
+          border-top: 1px solid var(--border) !important;
+        }}
+
+        /* Hide elements */
+        #MainMenu, footer, header {{
+          visibility: hidden !important;
+        }}
     </style>
     """
 
     st.markdown(custom_css, unsafe_allow_html=True)
-    if theme == "light":
-        st.markdown(light_theme_css, unsafe_allow_html=True)

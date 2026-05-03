@@ -109,7 +109,9 @@ def test_render_main_area_with_unsupported_file_warns_conversion_unavailable(mon
         def __exit__(self, exc_type, exc, tb):
             return False
 
-    uploaded_file = SimpleNamespace(name="notes.xyz")
+    uploaded_file = MagicMock()
+    uploaded_file.name = "notes.xyz"
+    uploaded_file.getbuffer.return_value = b"fake content"
     fake_session_state = FakeSessionState(active_tab="Dönüştür", uploaded_file=uploaded_file)
     warnings = []
     infos = []
@@ -125,10 +127,14 @@ def test_render_main_area_with_unsupported_file_warns_conversion_unavailable(mon
     Dashboard({"convert_tab": "Dönüştür", "view_tab": "Görüntüle", "ai_tab": "AI"}).render_main_area()
 
     assert any("notes.xyz" in message for message in writes)
-    assert warnings == [("Bu dosya türü için dönüştürme desteği bulunmuyor.", None)]
+    assert warnings == [
+        ("Bu dosya türü için dönüştürme desteği bulunmuyor.", None),
+        ("Desteklenmeyen dosya türü.", "⚠️")
+    ]
     assert infos == [
         ("Görüntüleme modülü yükleniyor...", "ℹ️"),
         ("AI analiz modülü yükleniyor...", "ℹ️"),
+        ("Bu dosya türü AI analizini desteklemiyor. Lütfen PDF, DOCX, TXT veya CSV yükleyin.", "ℹ️"),
     ]
 
 

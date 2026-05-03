@@ -100,8 +100,10 @@ class AIEngine:
     def _init_client(self):
         """Gemini API istemcisini başlatır. Eksik key veya paket durumunda
         graceful fallback sağlar."""
+        logging.info("Gemini API istemcisi başlatılıyor...")
+        
         if not Config.GEMINI_API_KEY or Config.GEMINI_API_KEY == "key_buraya_yazilacak":
-            logging.warning("Gemini API anahtarı yapılandırılmamış.")
+            logging.warning("Handshake FAILED: Gemini API anahtarı yapılandırılmamış (.env dosyasını kontrol edin).")
             return
 
         try:
@@ -109,14 +111,14 @@ class AIEngine:
 
             genai.configure(api_key=Config.GEMINI_API_KEY)
             self._model = genai.GenerativeModel("gemini-1.5-flash")
-            logging.info("Başarılı: Gemini API bağlantısı kuruldu.")
+            logging.info("Handshake SUCCESS: Gemini API bağlantısı kuruldu (Model: gemini-1.5-flash).")
         except ImportError:
             logging.error(
-                "Hata: google-generativeai paketi yüklü değil. "
+                "Handshake FAILED: google-generativeai paketi yüklü değil. "
                 "Kurulum: pip install google-generativeai~=0.8.3"
             )
         except Exception as e:
-            logging.error(f"Hata: Gemini API başlatılamadı: {e}")
+            logging.error(f"Handshake CRITICAL ERROR: Gemini API başlatılamadı: {str(e)}")
 
     # ------------------------------------------------------------------
     # Private helper — tüm public metotlar bu fonksiyonu kullanır (DRY)
@@ -132,6 +134,7 @@ class AIEngine:
             Model yanıtı veya hata durumunda bilgilendirici string.
         """
         if self._model is None:
+            logging.warning("AI çağrısı reddedildi: Model başlatılmamış.")
             return (
                 "API bağlantısı kurulamadı. Lütfen GEMINI_API_KEY "
                 "değerini .env dosyasında ayarlayın ve google-generativeai "
@@ -139,11 +142,13 @@ class AIEngine:
             )
 
         try:
+            logging.info("Gemini API isteği gönderiliyor...")
             full_prompt = f"{system}\n\n{prompt}" if system else prompt
             response = self._model.generate_content(full_prompt)
+            logging.info("Gemini API yanıtı başarıyla alındı.")
             return response.text
         except Exception as e:
-            logging.error(f"Hata: Gemini API çağrısı başarısız: {e}")
+            logging.error(f"Hata: Gemini API çağrısı başarısız (Ağ veya Quota sorunu olabilir): {str(e)}")
             return f"AI isteği başarısız oldu. Detay: {e}"
 
     # ------------------------------------------------------------------

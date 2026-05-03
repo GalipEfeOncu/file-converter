@@ -19,7 +19,7 @@ load_dotenv()  # .env dosyasını okur. Bu sayede API anahtarları gibi gizli bi
 
 class Config:
     APP_NAME = "Universal File Workstation"
-    DEFAULT_LANGUAGE = "tr"  # Default dil. tr / en
+    DEFAULT_LANGUAGE = "en"  # Default language: en / tr
 
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # os.getenv() ile .env dosyasından API anahtarını çeker.
 

@@ -5,6 +5,10 @@ Bu döküman, Universal File Workstation projesinin bağımsız çalışabilir b
 ## 1. Hazırlık ve Gereksinimler
 - Python ortamınızda `requirements.txt` içindeki tüm bağımlılıkların yüklü olduğundan emin olun.
 - PyInstaller'ın kurulu olması gereklidir: `pip install pyinstaller`
+- **Pandoc:** RTF/ODT desteği için sistemde kurulu olmalıdır.
+    - Windows: `choco install pandoc`
+    - macOS: `brew install pandoc`
+    - Linux: `sudo apt install pandoc`
 - Proje kök dizininde komut satırını açın.
 
 ## 2. Derleme (Build) İşlemi
