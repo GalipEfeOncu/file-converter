@@ -76,7 +76,6 @@ from config.settings import Config
 record("Config.APP_NAME is str", isinstance(Config.APP_NAME, str), Config.APP_NAME)
 record("Config.VERSION is str", isinstance(Config.VERSION, str), Config.VERSION)
 record("Config.DEFAULT_LANGUAGE in (tr, en)", Config.DEFAULT_LANGUAGE in ("tr", "en"), Config.DEFAULT_LANGUAGE)
-record("Config.GEMINI_API_KEY exists", hasattr(Config, "GEMINI_API_KEY"))
 record("Config.SUPPORTED_EXTENSIONS is list", isinstance(Config.SUPPORTED_EXTENSIONS, list), f"{len(Config.SUPPORTED_EXTENSIONS)} uzantı")
 
 # Tüm uzantılar '.' ile başlıyor mu?
@@ -94,7 +93,7 @@ from core.ai_engine import AIEngine, _SYSTEM_PROMPTS
 ai = AIEngine()
 
 # Metot varlığı
-for method in ["summarize", "answer_question", "extract_keywords", "simplify", "_call_gemini"]:
+for method in ["summarize", "answer_question", "extract_keywords", "simplify", "_call_groq"]:
     record(f"AIEngine.{method} exists", hasattr(ai, method))
 
 # System prompts
@@ -311,13 +310,13 @@ for line in lines:
     seen.add(pkg)
 record("Duplicate bağımlılık yok", len(dupes) == 0, f"Tekrar: {dupes}" if dupes else "")
 
-# google-generativeai kontrolü
-has_genai = any("google-generativeai" in l for l in lines)
+# groq kontrolü
+has_groq = any("groq" in l for l in lines)
 has_openai = any("openai" in l for l in lines)
-if not has_genai:
-    results.append(("google-generativeai requirements.txt'de var", WARN,
+if not has_groq:
+    results.append(("groq requirements.txt'de var", WARN,
                     "Ali'nin eklemesi gerekiyor"))
-    print(f"  {WARN}  google-generativeai requirements.txt'de var — Ali'nin eklemesi gerekiyor")
+    print(f"  {WARN}  groq requirements.txt'de var — Ali'nin eklemesi gerekiyor")
 if has_openai:
     results.append(("openai hâlâ requirements.txt'de (kullanılmıyor)", WARN,
                     "Ali ile kaldırılması koordine edilecek"))

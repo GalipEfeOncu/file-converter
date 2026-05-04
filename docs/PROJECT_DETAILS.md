@@ -81,7 +81,7 @@ Kullanıcı, uygulama içinde dosyaları açıp görüntüleyebilecektir:
 
 ### 3. Yapay Zekâ Destekli Analiz Modülü
 
-> ⚠️ **Mevcut Durum:** `core/ai_engine.py` STUB seviyededir. `summarize()` ve `answer_question()` placeholder string döner. Gemini/OpenAI entegrasyonu beklemededir (`Config.GEMINI_API_KEY` `.env`'den okunur).
+> ⚠️ **Mevcut Durum:** `core/ai_engine.py` STUB seviyededir. `summarize()` ve `answer_question()` placeholder string döner. Groq/OpenAI entegrasyonu beklemededir (`Config.GROQ_API_KEY` `.env`'den okunur).
 
 Uygulama içinde dosya içeriğini okuyabilen ve analiz edebilen bir AI sistemi bulunacaktır.
 

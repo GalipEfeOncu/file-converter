@@ -10,6 +10,7 @@ Yüklenen metin tabanlı dosyaları (PDF, DOCX, TXT) Gemini API kullanarak anali
 """
 
 import logging
+import streamlit as st
 
 from config.settings import Config
 
@@ -87,7 +88,7 @@ _SIMPLIFY_LEVEL_MAP: dict[str, str] = {
 class AIEngine:
     """Belgeler üzerinde yapay zeka analizi gerçekleştirir.
 
-    Gemini API üzerinden özet çıkarma, soru-cevap, anahtar kelime çıkarma
+    Groq API üzerinden özet çıkarma, soru-cevap, anahtar kelime çıkarma
     ve metin sadeleştirme işlevleri sunar. API anahtarı yapılandırılmamışsa
     tüm metotlar bilgilendirici bir geri-dönüş (fallback) stringi döndürür;
     hata fırlatmaz.
@@ -95,36 +96,56 @@ class AIEngine:
 
     def __init__(self):
         self._model = None
+        self._client = None
+        self._model_name = None
         self._init_client()
 
     def _init_client(self):
-        """Gemini API istemcisini başlatır. Eksik key veya paket durumunda
+        """Groq API istemcisini başlatır. Eksik key veya paket durumunda
         graceful fallback sağlar."""
-        logging.info("Gemini API istemcisi başlatılıyor...")
-        
-        if not Config.GEMINI_API_KEY or Config.GEMINI_API_KEY == "key_buraya_yazilacak":
-            logging.warning("Handshake FAILED: Gemini API anahtarı yapılandırılmamış (.env dosyasını kontrol edin).")
+        logging.info("Groq API istemcisi başlatılıyor...")
+
+        try:
+            try:
+                api_key = st.secrets["GROQ_API_KEY"]
+            except Exception as e:
+                logging.warning(f"st.secrets ile okunamadı, dosyadan okunuyor... Hata: {e}")
+                # Fallback: manuel okuma (Streamlit context hataları için)
+                import re
+                with open(".streamlit/secrets.toml", "r") as f:
+                    match = re.search(r'GROQ_API_KEY\s*=\s*"([^"]+)"', f.read())
+                    if match:
+                        api_key = match.group(1)
+                    else:
+                        raise ValueError("GROQ_API_KEY bulunamadı.")
+            
+            if not api_key or api_key == "buraya_groq_api_key":
+                logging.warning("Handshake FAILED: Groq API anahtarı yapılandırılmamış (secrets.toml dosyasını kontrol edin).")
+                return
+        except Exception as e:
+            logging.warning(f"Handshake FAILED: Groq API key okunamadı: {e}")
             return
 
         try:
-            import google.generativeai as genai
+            from groq import Groq
 
-            genai.configure(api_key=Config.GEMINI_API_KEY)
-            self._model = genai.GenerativeModel("gemini-1.5-flash")
-            logging.info("Handshake SUCCESS: Gemini API bağlantısı kuruldu (Model: gemini-1.5-flash).")
+            self._client = Groq(api_key=api_key)
+            self._model_name = "llama-3.3-70b-versatile"
+            self._model = True  # başarı bayrağı
+            logging.info(f"Handshake SUCCESS: Groq API bağlantısı kuruldu (Model: {self._model_name}).")
         except ImportError:
             logging.error(
-                "Handshake FAILED: google-generativeai paketi yüklü değil. "
-                "Kurulum: pip install google-generativeai~=0.8.3"
+                "Handshake FAILED: groq paketi yüklü değil. "
+                "Kurulum: pip install groq"
             )
         except Exception as e:
-            logging.error(f"Handshake CRITICAL ERROR: Gemini API başlatılamadı: {str(e)}")
+            logging.error(f"Handshake CRITICAL ERROR: Groq API başlatılamadı: {str(e)}")
 
     # ------------------------------------------------------------------
     # Private helper — tüm public metotlar bu fonksiyonu kullanır (DRY)
     # ------------------------------------------------------------------
-    def _call_gemini(self, prompt: str, system: str | None = None) -> str:
-        """Gemini modeline istek gönderir.
+    def _call_groq(self, prompt: str, system: str | None = None) -> str:
+        """Groq modeline istek gönderir.
 
         Args:
             prompt: Kullanıcı/görev promptu.
@@ -136,19 +157,26 @@ class AIEngine:
         if self._model is None:
             logging.warning("AI çağrısı reddedildi: Model başlatılmamış.")
             return (
-                "API bağlantısı kurulamadı. Lütfen GEMINI_API_KEY "
-                "değerini .env dosyasında ayarlayın ve google-generativeai "
+                "API bağlantısı kurulamadı. Lütfen GROQ_API_KEY "
+                "değerini .streamlit/secrets.toml dosyasında ayarlayın ve groq "
                 "paketinin kurulu olduğundan emin olun."
             )
 
         try:
-            logging.info("Gemini API isteği gönderiliyor...")
-            full_prompt = f"{system}\n\n{prompt}" if system else prompt
-            response = self._model.generate_content(full_prompt)
-            logging.info("Gemini API yanıtı başarıyla alındı.")
-            return response.text
+            logging.info("Groq API isteği gönderiliyor...")
+            messages = []
+            if system:
+                messages.append({"role": "system", "content": system})
+            messages.append({"role": "user", "content": prompt})
+            
+            response = self._client.chat.completions.create(
+                model=self._model_name,
+                messages=messages
+            )
+            logging.info("Groq API yanıtı başarıyla alındı.")
+            return response.choices[0].message.content
         except Exception as e:
-            logging.error(f"Hata: Gemini API çağrısı başarısız (Ağ veya Quota sorunu olabilir): {str(e)}")
+            logging.error(f"Hata: Groq API çağrısı başarısız: {str(e)}")
             return f"AI isteği başarısız oldu. Detay: {e}"
 
     # ------------------------------------------------------------------
@@ -169,7 +197,7 @@ class AIEngine:
 
         prompt_key = _SUMMARY_LENGTH_MAP.get(length, "summarize")
         system = _SYSTEM_PROMPTS[prompt_key]
-        return self._call_gemini(text, system=system)
+        return self._call_groq(text, system=system)
 
     def answer_question(self, context: str, question: str) -> str:
         """Verilen bağlam üzerinde soruyu yanıtlar.
@@ -187,7 +215,7 @@ class AIEngine:
             return "Lütfen bir soru girin."
 
         prompt = f"Bağlam:\n{context}\n\nSoru: {question}"
-        return self._call_gemini(prompt, system=_SYSTEM_PROMPTS["qa"])
+        return self._call_groq(prompt, system=_SYSTEM_PROMPTS["qa"])
 
     def extract_keywords(self, text: str, top_k: int = 10) -> list[str]:
         """Metinden anahtar kelimeleri çıkarır.
@@ -208,7 +236,7 @@ class AIEngine:
             f"Her anahtar kelimeyi yeni satıra yaz. "
             f"Yalnızca anahtar kelimeleri döndür:\n\n{text}"
         )
-        raw = self._call_gemini(prompt, system=_SYSTEM_PROMPTS["keywords"])
+        raw = self._call_groq(prompt, system=_SYSTEM_PROMPTS["keywords"])
 
         # API bağlantı hatası durumunda boş liste döndür
         if raw.startswith("API bağlantısı kurulamadı") or raw.startswith("AI isteği başarısız"):
@@ -238,4 +266,4 @@ class AIEngine:
 
         prompt_key = _SIMPLIFY_LEVEL_MAP.get(level, "simplify")
         system = _SYSTEM_PROMPTS[prompt_key]
-        return self._call_gemini(text, system=system)
+        return self._call_groq(text, system=system)

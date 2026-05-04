@@ -63,8 +63,8 @@ def test_config_class_attrs():
 
     assert isinstance(config.APP_NAME, str)
     assert isinstance(config.VERSION, str)
+    assert isinstance(config.DEFAULT_LANGUAGE, str)
     assert config.DEFAULT_LANGUAGE in {"tr", "en"}
-    assert hasattr(config, "GEMINI_API_KEY")
     assert isinstance(config.SUPPORTED_EXTENSIONS, list)
     assert config.SUPPORTED_EXTENSIONS
     assert all(ext.startswith(".") for ext in config.SUPPORTED_EXTENSIONS)

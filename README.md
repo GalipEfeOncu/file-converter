@@ -31,7 +31,7 @@ Whether you're a student converting lecture PDFs, a data analyst switching betwe
 - 🖼️ **Image Format Conversion** — Transform images across PNG, JPG, and WEBP formats with adjustable quality settings.
 - 🎵 **Audio Conversion** — Switch between MP3, WAV, and OGG audio formats powered by FFmpeg & pydub.
 - 👁️ **Built-in File Viewer** — Render PDFs as images, display tabular data, and read text documents without leaving the app.
-- 🤖 **AI-Powered Analysis** — Summarize documents and ask questions about their content using OpenAI or Gemini APIs.
+- 🤖 **AI-Powered Analysis** — Summarize documents and ask questions about their content using OpenAI or Groq APIs.
 - 🌐 **Bilingual Interface** — Full Turkish 🇹🇷 and English 🇺🇸 language support, switchable at runtime.
 - 🎨 **Custom Dark Theme** — A polished, dark-mode UI with custom CSS injection for a modern, professional look.
 - 🧪 **Tested & Reliable** — Automated test suite with `pytest` covering i18n consistency, dependency hygiene, and core module integrity.
@@ -49,7 +49,7 @@ file-converter/
 │   ├── converter.py         # File format conversion algorithms
 │   ├── viewer.py            # PDF rendering, table & text reading
 │   ├── player.py            # Audio format conversion (FFmpeg)
-│   └── ai_engine.py         # AI summarization & Q&A (OpenAI / Gemini)
+│   └── ai_engine.py         # AI summarization & Q&A (OpenAI / Groq)
 │
 ├── ui/                      # Streamlit presentation layer
 │   ├── dashboard.py         # Page layout, sidebar & navigation
@@ -122,7 +122,7 @@ To enable AI-powered document analysis, create a `.env` file in the project root
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 # OR
-GEMINI_API_KEY=your_gemini_api_key_here
+GROQ_API_KEY=your_gemini_api_key_here
 ```
 
 > ⚠️ **Never commit your `.env` file.** It is already listed in `.gitignore`.

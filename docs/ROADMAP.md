@@ -13,7 +13,7 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 | **Hafta 1** | **Temel Altyapı** | Altyapı, Arayüz İskeleti ve Temel Fonksiyonların kurulması. | ✅ Tamamlandı |
 | **Hafta 2** | **Dosya İşleme** | Dosya İşleme Motorları (PDF, DOCX, CSV vb.) geliştirilmesi. | ✅ Tamamlandı |
 | **Hafta 3** | **Entegrasyon & Bug-Fix** | UI ↔ Core bağlantısı, `player.py` refaktörü, eksik dependency'ler, Görüntüle sekmesi dispatcher. | ✅ Tamamlandı |
-| **Hafta 4** | **Yapay Zeka** | Gemini API entegrasyonu, özet/Q&A/anahtar kelime, AI sekmesi UI. | ✅ Tamamlandı |
+| **Hafta 4** | **Yapay Zeka** | Groq API entegrasyonu, özet/Q&A/anahtar kelime, AI sekmesi UI. | ✅ Tamamlandı |
 | **Hafta 5** | **UI/UX Cilalama & Test Genişletme** | i18n tamamlanması, açık tema, loading state'ler, unit & smoke test'ler. | ✅ Tamamlandı |
 | **Hafta 6** | **Paketleme & Yayın** | PyInstaller `.exe`, kullanıcı dokümantasyonu, regresyon testi, v0.1.0 release. | 🔜 Aktif Sprint |
 
@@ -77,7 +77,7 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 *   **Görevler:**
     - [x] `main.py` "Dönüştür" sekmesine `core/converter.py` modülünü import edip bağla.
     - [x] Streamlit arayüzünden seçilen dosya hedefine göre `converter.py` fonksiyonlarını tetikleyen buton ve durum yönetimini ekle.
-    - [x] `ai_engine.py` için temel Gemini API bağlantı taslağını yaz ve System Prompt oluşturarak test altyapısını kur.
+    - [x] `ai_engine.py` için temel Groq API bağlantı taslağını yaz ve System Prompt oluşturarak test altyapısını kur.
 
 ### 🟠 Issue #7: Gelişmiş Dönüştürme Motorları (Resim & Belge)
 *   **Sorumlu:** **Said Hamza Turan**
@@ -213,19 +213,19 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 
 # 🤖 4. Hafta (Sprint 4) Görev Listesi (Issues)
 
-> **Sprint Hedefi:** `core/ai_engine.py` stub'ını gerçek **Gemini API** ile değiştirmek; AI sekmesinde özet, soru-cevap, anahtar kelime ve sadeleştirme akışlarını çalışır hale getirmek.
-> **Definition of Done:** Geçerli `GEMINI_API_KEY` olan kullanıcı PDF/DOCX/TXT yükleyip AI sekmesinden özet alabilmeli, doküman içerikli soru sorabilmeli, anahtar kelime listesi görebilmeli. API key yokken kullanıcıya net hata mesajı gösterilmeli.
+> **Sprint Hedefi:** `core/ai_engine.py` stub'ını gerçek **Groq API** ile değiştirmek; AI sekmesinde özet, soru-cevap, anahtar kelime ve sadeleştirme akışlarını çalışır hale getirmek.
+> **Definition of Done:** Geçerli `GROQ_API_KEY` olan kullanıcı PDF/DOCX/TXT yükleyip AI sekmesinden özet alabilmeli, doküman içerikli soru sorabilmeli, anahtar kelime listesi görebilmeli. API key yokken kullanıcıya net hata mesajı gösterilmeli.
 
-### 🔴 Issue #16: Gemini API Entegrasyonu ve `AIEngine` Tam Implementasyonu
+### 🔴 Issue #16: Groq API Entegrasyonu ve `AIEngine` Tam Implementasyonu
 *   **Sorumlu:** **Galip Efe Öncü**
-*   **Özet:** `core/ai_engine.py` içindeki placeholder metotları gerçek Gemini API çağrılarıyla değiştirmek; özet, Q&A, anahtar kelime çıkarma ve sadeleştirme metotlarını eklemek; API key yokluğu / quota / network hatalarını graceful handle etmek.
+*   **Özet:** `core/ai_engine.py` içindeki placeholder metotları gerçek Groq API çağrılarıyla değiştirmek; özet, Q&A, anahtar kelime çıkarma ve sadeleştirme metotlarını eklemek; API key yokluğu / quota / network hatalarını graceful handle etmek.
 *   **User Story:** _"Bir kullanıcı olarak, yüklediğim metin tabanlı dosyanın AI tarafından özetlenmesini, içeriği hakkında doğal dilde soru sorabilmeyi ve anahtar kelimelerini görmeyi istiyorum."_
 *   **AC (Acceptance Criteria):**
-    - [x] `AIEngine.summarize(text: str, length: str = "medium") -> str` gerçek Gemini çağrısı yapar; `length ∈ {"short", "medium", "long"}`.
+    - [x] `AIEngine.summarize(text: str, length: str = "medium") -> str` gerçek Groq çağrısı yapar; `length ∈ {"short", "medium", "long"}`.
     - [x] `AIEngine.answer_question(context: str, question: str) -> str` doğrudan context-feeding (RAG değil) ile çalışır.
     - [x] `AIEngine.extract_keywords(text: str, top_k: int = 10) -> list[str]` çalışır.
     - [x] `AIEngine.simplify(text: str, level: str = "intermediate") -> str` çalışır (`basic | intermediate | advanced`).
-    - [x] `Config.GEMINI_API_KEY` `None` veya boşsa metotlar `RuntimeError` fırlatmaz; `i18n["error_api_key_missing"]` döner.
+    - [x] `Config.GROQ_API_KEY` `None` veya boşsa metotlar `RuntimeError` fırlatmaz; `i18n["error_api_key_missing"]` döner.
     - [x] Network/quota/API hataları `try/except`'le yakalanır, logging.error + kullanıcı dostu string döner.
     - [x] System prompt projeye özel hazırlanır (Türkçe/İngilizce çıktı dil yönetimi dahil).
     - [x] Tek bir `_call_gemini(prompt: str, system: str | None = None) -> str` private helper tüm metotlar tarafından kullanılır (DRY).
@@ -494,7 +494,7 @@ Bu döküman, projenin 6 haftalık hızlandırılmış geliştirme planını ve 
 
 | Risk | Etki | Hafifletme |
 |:---|:---|:---|
-| Gemini API key bağımlılığı | AI sekmesi key olmayan kullanıcıda çalışmaz | Sprint 4'te graceful degradation + clear error message |
+| Groq API key bağımlılığı | AI sekmesi key olmayan kullanıcıda çalışmaz | Sprint 4'te graceful degradation + clear error message |
 | `docx2pdf` Windows + MS Word zorunluluğu | macOS/Linux kullanıcılarda DOCX→PDF kapalı | UI'da OS/Word kontrolü + alternatif öner (`libreoffice`) |
 | PyInstaller Streamlit uyumu | `.exe` build'inde runtime hook karmaşası | Sprint 6 başında 1 günlük spike; gerekirse `nicegui`/`pywebview` fallback değerlendirilir |
 | FFmpeg LGPL bundling lisans uyumu | Yasal | `THIRD_PARTY_LICENSES.md` ve LGPL koşulları belgelenir |
