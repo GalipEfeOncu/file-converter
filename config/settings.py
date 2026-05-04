@@ -23,6 +23,14 @@ class Config:
     APP_NAME = "Universal File Workstation"
     DEFAULT_LANGUAGE = "en"  # Default language: en / tr
 
+    # ---------------------------------------------------------------------------
+    # AI Provider Configuration (loaded from .env)
+    # ---------------------------------------------------------------------------
+    GROQ_API_KEY: str | None = os.getenv("GROQ_API_KEY")
+    DEEPSEEK_API_KEY: str | None = os.getenv("DEEPSEEK_API_KEY")
+    # Active provider: "groq" | "deepseek"  — overridable at runtime via session_state
+    AI_PROVIDER: str = os.getenv("AI_PROVIDER", "groq").lower()
+
 
 
     # fmt: off

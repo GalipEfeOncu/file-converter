@@ -63,6 +63,12 @@ def init_state():
     if "show_settings" not in st.session_state:
         st.session_state.show_settings = False
 
+    if "selected_category" not in st.session_state:
+        st.session_state.selected_category = None
+
+    if "selected_target_format" not in st.session_state:
+        st.session_state.selected_target_format = None
+
 
 def main():
     # Sayfayı Konfigüre eder. Sayfa başlığı ve genişliği

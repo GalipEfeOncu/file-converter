@@ -1,12 +1,18 @@
 """
-core/ai_engine.py — Yapay Zeka Destekli Analiz Modülü
-Sahibi: Galip Efe Öncü (Proje Mimarı)
+core/ai_engine.py — AI-Powered Document Analysis Module
+Owner: Galip Efe Öncü (Project Architect)
 
-Senin Görevin:
-Yüklenen metin tabanlı dosyaları (PDF, DOCX, TXT) Gemini API kullanarak analiz etmek;
-özet çıkarma, soru-cevap, anahtar kelime çıkarma ve metin sadeleştirme yapmak.
+Responsibility:
+    Analyse text-based files (PDF, DOCX, TXT, CSV) using either the Groq API
+    or the DeepSeek API.  The active provider is resolved at call time from
+    st.session_state["ai_provider"] (set by the UI selector) and falls back to
+    Config.AI_PROVIDER (.env).
 
-Çıktı: "Ham metni işleyip anlamlı içgörülere ve özetlere dönüştüren AI servisi."
+    Supported operations: summarise, question-answering, keyword extraction,
+    text simplification.
+
+    Output language: **always English**, regardless of the input document's
+    language.  This is enforced via the system prompts.
 """
 
 import logging
@@ -17,60 +23,79 @@ from config.settings import Config
 logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
 # ---------------------------------------------------------------------------
-# System Prompt Sabitleri
+# Provider constants
+# ---------------------------------------------------------------------------
+PROVIDER_GROQ = "groq"
+PROVIDER_DEEPSEEK = "deepseek"
+
+# Best value-for-performance models (as of 2026-05):
+#   Groq     → llama-3.3-70b-versatile  (fast inference, free tier generous)
+#   DeepSeek → deepseek-chat            (DeepSeek-V3, best quality/cost ratio)
+_GROQ_MODEL = "llama-3.3-70b-versatile"
+_DEEPSEEK_MODEL = "deepseek-chat"
+_DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+
+# ---------------------------------------------------------------------------
+# System Prompts — English-only output enforced in every prompt
 # ---------------------------------------------------------------------------
 _SYSTEM_PROMPTS: dict[str, str] = {
     "summarize": (
-        "Sen bir belge özetleme asistanısın. Kullanıcının verdiği metni "
-        "kısa, öz ve anlaşılır şekilde özetle. Özette ana fikirleri ve "
-        "kritik detayları koru. Çıktı dilini girdi metninin diline göre "
-        "otomatik seç (Türkçe metin → Türkçe özet, İngilizce metin → "
-        "İngilizce özet)."
+        "You are a professional document summarisation assistant. "
+        "Summarise the user-provided text concisely, preserving the main "
+        "ideas and critical details. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
     "summarize_short": (
-        "Sen bir belge özetleme asistanısın. Verilen metni EN FAZLA 2-3 "
-        "cümleyle özetle. Yalnızca en önemli ana fikri koru. Çıktı dilini "
-        "girdi metninin diline göre otomatik seç."
+        "You are a professional document summarisation assistant. "
+        "Summarise the provided text in AT MOST 2-3 sentences, keeping only "
+        "the single most important idea. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
     "summarize_long": (
-        "Sen bir belge özetleme asistanısın. Verilen metni detaylı şekilde "
-        "özetle; tüm önemli noktaları, argümanları ve destekleyici detayları "
-        "koru. Çıktı dilini girdi metninin diline göre otomatik seç."
+        "You are a professional document summarisation assistant. "
+        "Provide a detailed summary of the provided text, covering all "
+        "important points, arguments, and supporting details. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
     "qa": (
-        "Sen bir soru-cevap asistanısın. Kullanıcının sağladığı bağlam "
-        "metnini kullanarak soruyu yanıtla. Yalnızca bağlamda bulunan "
-        "bilgilere dayalı cevap ver. Bağlamda yanıt bulamıyorsan bunu "
-        "açıkça belirt. Cevap dilini sorunun diline göre seç."
+        "You are a precise question-answering assistant. "
+        "Answer the user's question using ONLY information present in the "
+        "provided context text. "
+        "If the answer cannot be found in the context, clearly state that. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
     "keywords": (
-        "Sen bir anahtar kelime çıkarma asistanısın. Verilen metinden "
-        "en önemli ve temsil edici anahtar kelimeleri çıkar. Her anahtar "
-        "kelimeyi yeni satıra yaz. Yalnızca anahtar kelimeleri döndür, "
-        "ek açıklama ekleme. Çıktı dilini metnin diline göre seç."
+        "You are a keyword-extraction assistant. "
+        "Extract the most important and representative keywords from the "
+        "provided text. Write one keyword per line. "
+        "Return ONLY the keywords — no explanations, no numbering. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
     "simplify": (
-        "Sen bir metin sadeleştirme asistanısın. Verilen metni daha "
-        "anlaşılır, sade ve kolay okunur hale getir. Teknik terimleri "
-        "günlük dil karşılıklarıyla açıkla. Anlamı koruyarak cümleleri "
-        "kısalt ve basitleştir. Çıktı dilini metnin diline göre seç."
+        "You are a text-simplification assistant. "
+        "Rewrite the provided text in clearer, simpler, and more readable "
+        "language. Replace technical jargon with everyday equivalents while "
+        "preserving the original meaning. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
     "simplify_basic": (
-        "Sen bir metin sadeleştirme asistanısın. Verilen metni çok basit, "
-        "herkesin anlayabileceği bir dile çevir. Teknik terimleri tamamen "
-        "günlük kelimelere dönüştür. Kısa cümleler kullan. "
-        "Çıktı dilini metnin diline göre seç."
+        "You are a text-simplification assistant. "
+        "Rewrite the provided text so that anyone can understand it. "
+        "Use very short sentences and plain, everyday vocabulary. "
+        "Completely replace all technical terms with simple words. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
     "simplify_advanced": (
-        "Sen bir metin sadeleştirme asistanısın. Verilen metnin akışını "
-        "ve okunabilirliğini iyileştir; ancak teknik doğruluğu ve "
-        "terminolojiyi koru. Akademik veya profesyonel seviyede yaz. "
-        "Çıktı dilini metnin diline göre seç."
+        "You are a text-improvement assistant. "
+        "Improve the flow and readability of the provided text while "
+        "preserving its technical accuracy and terminology. "
+        "Write at an academic or professional level. "
+        "IMPORTANT: Always respond in English regardless of the input language."
     ),
 }
 
 # ---------------------------------------------------------------------------
-# Uzunluk → system prompt eşleme
+# Length / level → system prompt key maps
 # ---------------------------------------------------------------------------
 _SUMMARY_LENGTH_MAP: dict[str, str] = {
     "short": "summarize_short",
@@ -86,164 +111,225 @@ _SIMPLIFY_LEVEL_MAP: dict[str, str] = {
 
 
 class AIEngine:
-    """Belgeler üzerinde yapay zeka analizi gerçekleştirir.
+    """AI-powered document analysis — supports Groq and DeepSeek providers.
 
-    Groq API üzerinden özet çıkarma, soru-cevap, anahtar kelime çıkarma
-    ve metin sadeleştirme işlevleri sunar. API anahtarı yapılandırılmamışsa
-    tüm metotlar bilgilendirici bir geri-dönüş (fallback) stringi döndürür;
-    hata fırlatmaz.
+    The active provider is determined lazily at each call from
+    ``st.session_state["ai_provider"]`` (set by the UI selector).  If that
+    key is absent, ``Config.AI_PROVIDER`` is used as the default.
+
+    All methods return an English string (or list[str] for keywords).
+    When an API key is missing or a network error occurs, a graceful English
+    fallback message is returned instead of raising an exception.
     """
 
+    # ------------------------------------------------------------------
+    # Initialisation — lazy: actual clients are built on first call
+    # ------------------------------------------------------------------
     def __init__(self):
-        self._model = None
-        self._client = None
-        self._model_name = None
-        self._init_client()
+        self._groq_client = None
+        self._deepseek_client = None
+        self._groq_ready = False
+        self._deepseek_ready = False
+        self._initialise_providers()
 
-    def _init_client(self):
-        """Groq API istemcisini başlatır. Eksik key veya paket durumunda
-        graceful fallback sağlar."""
-        logging.info("Groq API istemcisi başlatılıyor...")
+    def _initialise_providers(self):
+        """Attempt to build both provider clients from available API keys."""
+        self._init_groq()
+        self._init_deepseek()
 
-        try:
-            try:
-                api_key = st.secrets["GROQ_API_KEY"]
-            except Exception as e:
-                logging.warning(f"st.secrets ile okunamadı, dosyadan okunuyor... Hata: {e}")
-                # Fallback: manuel okuma (Streamlit context hataları için)
-                import re
-                with open(".streamlit/secrets.toml", "r") as f:
-                    match = re.search(r'GROQ_API_KEY\s*=\s*"([^"]+)"', f.read())
-                    if match:
-                        api_key = match.group(1)
-                    else:
-                        raise ValueError("GROQ_API_KEY bulunamadı.")
-            
-            if not api_key or api_key == "buraya_groq_api_key":
-                logging.warning("Handshake FAILED: Groq API anahtarı yapılandırılmamış (secrets.toml dosyasını kontrol edin).")
-                return
-        except Exception as e:
-            logging.warning(f"Handshake FAILED: Groq API key okunamadı: {e}")
+    # ------------------------------------------------------------------
+    # Provider-specific init helpers
+    # ------------------------------------------------------------------
+    def _init_groq(self):
+        """Initialise the Groq client using GROQ_API_KEY from .env / secrets."""
+        api_key = self._read_api_key("GROQ_API_KEY", Config.GROQ_API_KEY)
+        if not api_key:
+            logging.warning("Groq: API key missing — Groq provider will be unavailable.")
             return
 
         try:
             from groq import Groq
-
-            self._client = Groq(api_key=api_key)
-            self._model_name = "llama-3.3-70b-versatile"
-            self._model = True  # başarı bayrağı
-            logging.info(f"Handshake SUCCESS: Groq API bağlantısı kuruldu (Model: {self._model_name}).")
+            self._groq_client = Groq(api_key=api_key)
+            self._groq_ready = True
+            logging.info(f"Groq: client initialised (model: {_GROQ_MODEL}).")
         except ImportError:
-            logging.error(
-                "Handshake FAILED: groq paketi yüklü değil. "
-                "Kurulum: pip install groq"
+            logging.error("Groq: 'groq' package not installed. Run: pip install groq")
+        except Exception as exc:
+            logging.error(f"Groq: initialisation failed — {exc}")
+
+    def _init_deepseek(self):
+        """Initialise the DeepSeek client (OpenAI-compatible) using DEEPSEEK_API_KEY."""
+        api_key = self._read_api_key("DEEPSEEK_API_KEY", Config.DEEPSEEK_API_KEY)
+        if not api_key or api_key == "your_deepseek_api_key_here":
+            logging.warning("DeepSeek: API key missing — DeepSeek provider will be unavailable.")
+            return
+
+        try:
+            from openai import OpenAI
+            self._deepseek_client = OpenAI(
+                api_key=api_key,
+                base_url=_DEEPSEEK_BASE_URL,
             )
-        except Exception as e:
-            logging.error(f"Handshake CRITICAL ERROR: Groq API başlatılamadı: {str(e)}")
+            self._deepseek_ready = True
+            logging.info(f"DeepSeek: client initialised (model: {_DEEPSEEK_MODEL}).")
+        except ImportError:
+            logging.error("DeepSeek: 'openai' package not installed. Run: pip install openai")
+        except Exception as exc:
+            logging.error(f"DeepSeek: initialisation failed — {exc}")
 
     # ------------------------------------------------------------------
-    # Private helper — tüm public metotlar bu fonksiyonu kullanır (DRY)
+    # API key resolution helper
     # ------------------------------------------------------------------
-    def _call_groq(self, prompt: str, system: str | None = None) -> str:
-        """Groq modeline istek gönderir.
+    @staticmethod
+    def _read_api_key(env_name: str, config_value: str | None) -> str | None:
+        """Return the API key from session secrets, then Config, then None."""
+        # 1. Try Streamlit secrets (production deployment)
+        try:
+            val = st.secrets.get(env_name)
+            if val:
+                return val
+        except Exception:
+            pass
+        # 2. Fall back to Config (loaded from .env via dotenv)
+        return config_value or None
 
-        Args:
-            prompt: Kullanıcı/görev promptu.
-            system: Opsiyonel system prompt (metot bazında).
+    # ------------------------------------------------------------------
+    # Active-provider resolution
+    # ------------------------------------------------------------------
+    def _active_provider(self) -> str:
+        """Return the currently selected provider from session_state or Config."""
+        return st.session_state.get("ai_provider", Config.AI_PROVIDER).lower()
 
-        Returns:
-            Model yanıtı veya hata durumunda bilgilendirici string.
+    # ------------------------------------------------------------------
+    # Core call dispatcher
+    # ------------------------------------------------------------------
+    def _call_ai(self, prompt: str, system: str | None = None) -> str:
+        """Route the request to the active provider and return the response.
+
+        Falls back gracefully with an informative English message on any error.
         """
-        if self._model is None:
-            logging.warning("AI çağrısı reddedildi: Model başlatılmamış.")
+        provider = self._active_provider()
+
+        if provider == PROVIDER_DEEPSEEK:
+            return self._call_deepseek(prompt, system)
+        else:
+            return self._call_groq(prompt, system)
+
+    def _call_groq(self, prompt: str, system: str | None = None) -> str:
+        """Send a request to the Groq API."""
+        if not self._groq_ready:
             return (
-                "API bağlantısı kurulamadı. Lütfen GROQ_API_KEY "
-                "değerini .streamlit/secrets.toml dosyasında ayarlayın ve groq "
-                "paketinin kurulu olduğundan emin olun."
+                "Groq API connection failed. "
+                "Please set GROQ_API_KEY in your .env file and ensure the "
+                "'groq' package is installed."
             )
 
         try:
-            logging.info("Groq API isteği gönderiliyor...")
+            logging.info("Groq: sending request...")
             messages = []
             if system:
                 messages.append({"role": "system", "content": system})
             messages.append({"role": "user", "content": prompt})
-            
-            response = self._client.chat.completions.create(
-                model=self._model_name,
-                messages=messages
+
+            response = self._groq_client.chat.completions.create(
+                model=_GROQ_MODEL,
+                messages=messages,
             )
-            logging.info("Groq API yanıtı başarıyla alındı.")
+            logging.info("Groq: response received successfully.")
             return response.choices[0].message.content
-        except Exception as e:
-            logging.error(f"Hata: Groq API çağrısı başarısız: {str(e)}")
-            return f"AI isteği başarısız oldu. Detay: {e}"
+        except Exception as exc:
+            logging.error(f"Groq: API call failed — {exc}")
+            return f"Groq request failed. Details: {exc}"
+
+    def _call_deepseek(self, prompt: str, system: str | None = None) -> str:
+        """Send a request to the DeepSeek API (OpenAI-compatible)."""
+        if not self._deepseek_ready:
+            return (
+                "DeepSeek API connection failed. "
+                "Please set DEEPSEEK_API_KEY in your .env file and ensure the "
+                "'openai' package is installed."
+            )
+
+        try:
+            logging.info("DeepSeek: sending request...")
+            messages = []
+            if system:
+                messages.append({"role": "system", "content": system})
+            messages.append({"role": "user", "content": prompt})
+
+            response = self._deepseek_client.chat.completions.create(
+                model=_DEEPSEEK_MODEL,
+                messages=messages,
+            )
+            logging.info("DeepSeek: response received successfully.")
+            return response.choices[0].message.content
+        except Exception as exc:
+            logging.error(f"DeepSeek: API call failed — {exc}")
+            return f"DeepSeek request failed. Details: {exc}"
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
     def summarize(self, text: str, length: str = "medium") -> str:
-        """Metni özetler.
+        """Summarise the provided text.
 
         Args:
-            text: Özetlenecek ham metin.
-            length: Özet uzunluğu — "short", "medium" veya "long".
+            text:   Raw text to summarise.
+            length: Summary length — "short" | "medium" | "long".
 
         Returns:
-            Özet stringi veya hata/fallback mesajı.
+            English summary string, or a graceful fallback on error.
         """
         if not text or not text.strip():
-            return "Özetlenecek metin bulunamadı."
+            return "No text provided for summarisation."
 
         prompt_key = _SUMMARY_LENGTH_MAP.get(length, "summarize")
-        system = _SYSTEM_PROMPTS[prompt_key]
-        return self._call_groq(text, system=system)
+        return self._call_ai(text, system=_SYSTEM_PROMPTS[prompt_key])
 
     def answer_question(self, context: str, question: str) -> str:
-        """Verilen bağlam üzerinde soruyu yanıtlar.
+        """Answer the user's question using the provided context.
 
         Args:
-            context: Kaynak metin (bağlam).
-            question: Kullanıcının sorusu.
+            context:  Source text (context).
+            question: User's question.
 
         Returns:
-            Yanıt stringi veya hata/fallback mesajı.
+            English answer string, or a graceful fallback on error.
         """
         if not context or not context.strip():
-            return "Soru-cevap için bağlam metni bulunamadı."
+            return "No context text provided for question answering."
         if not question or not question.strip():
-            return "Lütfen bir soru girin."
+            return "Please enter a question."
 
-        prompt = f"Bağlam:\n{context}\n\nSoru: {question}"
-        return self._call_groq(prompt, system=_SYSTEM_PROMPTS["qa"])
+        prompt = f"Context:\n{context}\n\nQuestion: {question}"
+        return self._call_ai(prompt, system=_SYSTEM_PROMPTS["qa"])
 
     def extract_keywords(self, text: str, top_k: int = 10) -> list[str]:
-        """Metinden anahtar kelimeleri çıkarır.
+        """Extract keywords from the provided text.
 
         Args:
-            text: Analiz edilecek ham metin.
-            top_k: Döndürülecek maksimum anahtar kelime sayısı.
+            text:  Text to analyse.
+            top_k: Maximum number of keywords to return.
 
         Returns:
-            Anahtar kelime listesi. Hata durumunda boş liste.
+            List of English keyword strings; empty list on error.
         """
         if not text or not text.strip():
-            logging.error("Hata: Anahtar kelime çıkarma için metin bulunamadı.")
+            logging.error("Keyword extraction: no text provided.")
             return []
 
         prompt = (
-            f"Aşağıdaki metinden en önemli {top_k} anahtar kelimeyi çıkar. "
-            f"Her anahtar kelimeyi yeni satıra yaz. "
-            f"Yalnızca anahtar kelimeleri döndür:\n\n{text}"
+            f"Extract the {top_k} most important keywords from the following text. "
+            f"Write one keyword per line. Return ONLY the keywords:\n\n{text}"
         )
-        raw = self._call_groq(prompt, system=_SYSTEM_PROMPTS["keywords"])
+        raw = self._call_ai(prompt, system=_SYSTEM_PROMPTS["keywords"])
 
-        # API bağlantı hatası durumunda boş liste döndür
-        if raw.startswith("API bağlantısı kurulamadı") or raw.startswith("AI isteği başarısız"):
-            logging.error(f"Hata: Anahtar kelime çıkarma başarısız: {raw}")
+        # Detect error / fallback messages
+        if raw.startswith(("Groq request failed", "DeepSeek request failed",
+                            "Groq API connection", "DeepSeek API connection")):
+            logging.error(f"Keyword extraction failed: {raw}")
             return []
 
-        # Yanıtı satırlara ayır, temizle ve top_k ile sınırla
         keywords = [
             line.strip().lstrip("•-–—*0123456789. ")
             for line in raw.strip().splitlines()
@@ -252,18 +338,37 @@ class AIEngine:
         return keywords[:top_k]
 
     def simplify(self, text: str, level: str = "intermediate") -> str:
-        """Metni sadeleştirir / basitleştirir.
+        """Simplify / rewrite the provided text.
 
         Args:
-            text: Sadeleştirilecek ham metin.
-            level: Sadeleştirme seviyesi — "basic", "intermediate" veya "advanced".
+            text:  Text to simplify.
+            level: Simplification level — "basic" | "intermediate" | "advanced".
 
         Returns:
-            Sadeleştirilmiş metin veya hata/fallback mesajı.
+            English simplified text, or a graceful fallback on error.
         """
         if not text or not text.strip():
-            return "Sadeleştirilecek metin bulunamadı."
+            return "No text provided for simplification."
 
         prompt_key = _SIMPLIFY_LEVEL_MAP.get(level, "simplify")
-        system = _SYSTEM_PROMPTS[prompt_key]
-        return self._call_groq(text, system=system)
+        return self._call_ai(text, system=_SYSTEM_PROMPTS[prompt_key])
+
+    # ------------------------------------------------------------------
+    # Provider status helpers (used by the UI to show readiness)
+    # ------------------------------------------------------------------
+    def is_groq_ready(self) -> bool:
+        """Return True if the Groq client is initialised and ready."""
+        return self._groq_ready
+
+    def is_deepseek_ready(self) -> bool:
+        """Return True if the DeepSeek client is initialised and ready."""
+        return self._deepseek_ready
+
+    def available_providers(self) -> list[str]:
+        """Return a list of provider IDs that have valid API keys."""
+        providers = []
+        if self._groq_ready:
+            providers.append(PROVIDER_GROQ)
+        if self._deepseek_ready:
+            providers.append(PROVIDER_DEEPSEEK)
+        return providers

@@ -108,10 +108,12 @@ class FileViewer:
         current = st.session_state["pdf_current_page"]
         pdf_page_of = texts.get("pdf_page_of", "of")
 
-        col_info, col_nav = st.columns([3, 2])
-        with col_info:
+        # Flat 4-column layout — avoids nested columns (Streamlit allows only 1 level deep)
+        col_input, col_spacer, col_prev, col_next = st.columns([3, 1, 1, 1])
+
+        with col_input:
             sayfa_no = st.number_input(
-                f"{texts.get('settings_language_label', 'Page')} ({current + 1} {pdf_page_of} {toplam_sayfa})",
+                f"Page ({current + 1} {pdf_page_of} {toplam_sayfa})",
                 min_value=1,
                 max_value=toplam_sayfa,
                 value=current + 1,
@@ -121,17 +123,20 @@ class FileViewer:
             current = sayfa_no - 1
             st.session_state["pdf_current_page"] = current
 
-        with col_nav:
+        with col_spacer:
+            st.write("")  # intentional spacer
+
+        with col_prev:
             st.write("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-            nav_col1, nav_col2 = st.columns(2)
-            with nav_col1:
-                if st.button(texts.get("pdf_prev", "Previous"), key="pdf_prev", disabled=(current == 0), use_container_width=True):
-                    st.session_state["pdf_current_page"] = max(0, current - 1)
-                    st.rerun()
-            with nav_col2:
-                if st.button(texts.get("pdf_next", "Next"), key="pdf_next", disabled=(current >= toplam_sayfa - 1), use_container_width=True):
-                    st.session_state["pdf_current_page"] = min(toplam_sayfa - 1, current + 1)
-                    st.rerun()
+            if st.button(texts.get("pdf_prev", "◀ Prev"), key="pdf_prev", disabled=(current == 0), use_container_width=True):
+                st.session_state["pdf_current_page"] = max(0, current - 1)
+                st.rerun()
+
+        with col_next:
+            st.write("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            if st.button(texts.get("pdf_next", "Next ▶"), key="pdf_next", disabled=(current >= toplam_sayfa - 1), use_container_width=True):
+                st.session_state["pdf_current_page"] = min(toplam_sayfa - 1, current + 1)
+                st.rerun()
 
         resimler = self.render_pdf(pdf_path, start=current, end=current + 1)
         if resimler:
