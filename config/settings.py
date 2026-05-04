@@ -23,7 +23,7 @@ class Config:
     APP_NAME = "Universal File Workstation"
     DEFAULT_LANGUAGE = "en"  # Default language: en / tr
 
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # os.getenv() ile .env dosyasından API anahtarını çeker.
+
 
     # fmt: off
     SUPPORTED_EXTENSIONS = [

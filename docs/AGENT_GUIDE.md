@@ -13,7 +13,7 @@
 
 - **Proje Adı:** Universal File Workstation (klasör adı: `file-converter`)
 - **Tip:** Streamlit tabanlı, yerel-öncelikli (local-first), masaüstü/web hibrit dosya araç çantası.
-- **Üç Ana Yetenek:** Dosya Dönüştürme · Dosya Görüntüleme · AI Analizi (Gemini API entegre).
+- **Üç Ana Yetenek:** Dosya Dönüştürme · Dosya Görüntüleme · AI Analizi (Groq API entegre).
 - **Dil:** Python 3.10+
 - **UI:** Streamlit + özel CSS enjeksiyonu (karanlık tema).
 - **Çoklu Dil:** Türkçe (varsayılan) / İngilizce, runtime'da değiştirilebilir.
@@ -33,7 +33,7 @@ file-converter/
 │   ├── converter.py          ← FileConverter: PDF↔DOCX, CSV↔XLSX, Image, DOCX→PDF/TXT
 │   ├── player.py             ← AudioConverter: pydub + FFmpeg ile ses dönüşümü
 │   ├── viewer.py             ← FileViewer: PDF→PNG, tablo, ses/video/text gösterimi
-│   └── ai_engine.py          ← AIEngine: summarize/answer_question/extract_keywords/simplify (Gemini API)
+│   └── ai_engine.py          ← AIEngine: summarize/answer_question/extract_keywords/simplify (Groq API)
 ├── ui/                       ← SUNUM KATMANI (dosya I/O YASAK)
 │   ├── dashboard.py          ← Dashboard sınıfı: render_sidebar() + render_main_area()
 │   └── styles.py             ← apply_custom_css(): tek fonksiyon, tüm tema CSS'i
@@ -46,7 +46,7 @@ file-converter/
 │   └── test_requirements.py  ← ~= operatörü + tekillik kontrolü
 ├── docs/                     ← TÜM dökümantasyon burada
 ├── temp/                     ← Runtime geçici dosyalar (git-ignore)
-├── .env                      ← GEMINI_API_KEY (git-ignore)
+├── .env                      ← GROQ_API_KEY (git-ignore)
 ├── requirements.txt          ← Tüm bağımlılıklar `~=` ile pinli
 ├── test.py                   ← Manuel entegrasyon (image + ffmpeg)
 └── test_core.py              ← Manuel entegrasyon (converter)
@@ -68,7 +68,7 @@ from config.settings import Config
 Config.APP_NAME            # "Universal File Workstation"
 Config.VERSION             # "0.1.0-alpha"
 Config.DEFAULT_LANGUAGE    # "tr"
-Config.GEMINI_API_KEY      # str | None  (.env'den)
+Config.GROQ_API_KEY      # str | None  (.env'den)
 Config.SUPPORTED_EXTENSIONS  # list[str], her uzantı '.' ile başlar (örn. ".pdf")
 ```
 
@@ -139,7 +139,7 @@ fv.display_text_document(file_path: str) -> None  # .txt -> text_area, .docx -> 
 
 ### 2.5 `core/ai_engine.py` — `AIEngine`
 
-> **Güncelleme (2026-04-21, Issue #16):** Stub kaldırıldı, gerçek Gemini API entegrasyonu tamamlandı.
+> **Güncelleme (2026-04-21, Issue #16):** Stub kaldırıldı, gerçek Groq API entegrasyonu tamamlandı.
 
 ```python
 from core.ai_engine import AIEngine
@@ -156,7 +156,7 @@ ai.simplify(text: str, level: str = "intermediate") -> str
     # level: "basic" | "intermediate" | "advanced"
 ```
 
-> `Config.GEMINI_API_KEY` eksikse metotlar exception fırlatmaz; bilgilendirici string/boş liste döner.
+> `Config.GROQ_API_KEY` eksikse metotlar exception fırlatmaz; bilgilendirici string/boş liste döner.
 > Tüm metotlar `_call_gemini(prompt, system)` private helper üzerinden çalışır (DRY).
 > 8 adet projeye özel system prompt `_SYSTEM_PROMPTS` dict'inde tanımlıdır.
 
@@ -285,7 +285,7 @@ Kullanıcı sidebar'dan dosya yükler
 | `Pillow` | `~=11.2.1` | `converter` | Görsel dönüşümü |
 | `pydub` | `~=0.25.1` | `player` | Ses dönüşümü |
 | `audioop-lts` | `~=0.2.1` | (Python 3.13+ pydub uyumu) | |
-| `google-generativeai` | `~=0.8.3` | `ai_engine` | Gemini API istemcisi ✅ (openai ile değiştirildi, 2026-04-29) |
+| `google-generativeai` | `~=0.8.3` | `ai_engine` | Groq API istemcisi ✅ (openai ile değiştirildi, 2026-04-29) |
 | `python-dotenv` | `~=1.0.1` | `config/settings` | `.env` yükleme |
 | `pytest` | `~=8.3.5` | `tests/*` | Test runner |
 | `pytest-cov` | `~=7.1.0` | `tests/*` | Coverage raporu (Issue #25) |
@@ -346,7 +346,7 @@ python -m pytest tests/test_requirements.py -v
 | # | Konum | Tip | Açıklama | Durum |
 |:---|:---|:---|:---|:---|
 | 1 | `core/player.py` | ~~🐛 Bug~~ | ~~Çift `class AudioConverter` ve çift `__init__`.~~ Düzeltildi, tek sınıf mevcut. | ✅ Tamamlandı (Issue #12) |
-| 2 | `core/ai_engine.py` | ~~🔲 Stub~~ | ~~Gerçek Gemini/OpenAI entegrasyonu.~~ Issue #16 ile tamamlandı. | ✅ Tamamlandı |
+| 2 | `core/ai_engine.py` | ~~🔲 Stub~~ | ~~Gerçek Groq/OpenAI entegrasyonu.~~ Issue #16 ile tamamlandı. | ✅ Tamamlandı |
 | 3 | `requirements.txt` | ~~⚠️ Eksik~~ | ~~`docx2pdf` ve `google-generativeai` eksikti.~~ Her ikisi de eklendi. | ✅ Tamamlandı (Issue #15 + Scrum Master) |
 | 4 | `ui/dashboard.py` | ~~🌐 i18n~~ | ~~Sidebar başlıkları hardcoded.~~ `texts.get()` ile i18n'e bağlandı. | ✅ Tamamlandı (Issue #14) |
 | 5 | `main.py` tab içerikleri | ~~🔌 Bağlantı~~ | ~~Dönüştürme placeholder'ları~~ Dönüştür sekmesi bağlandı (Issue #6 + #11). | ✅ Tamamlandı |
@@ -463,8 +463,8 @@ C: HAYIR. Tek istisna `core/viewer.py`'de `display_*` metotları (legacy). Yeni 
 **S: `assets/languages.json`'da yalnızca `tr`'ye yeni anahtar eklersem ne olur?**
 C: `pytest` düşer (`test_language_keys_are_symmetric_between_tr_and_en`). Her zaman ikisine birden ekle.
 
-**S: `Config.GEMINI_API_KEY` `None` ise ne yapmalıyım?**
-C: AI çağrısı öncesi kontrol et: `if not Config.GEMINI_API_KEY: return "API key missing"` gibi graceful fallback.
+**S: `Config.GROQ_API_KEY` `None` ise ne yapmalıyım?**
+C: AI çağrısı öncesi kontrol et: `if not Config.GROQ_API_KEY: return "API key missing"` gibi graceful fallback.
 
 **S: Geçici dosyaları nereye yazmalıyım?**
 C: `temp/` klasörüne. Git tarafından ignore edilir.

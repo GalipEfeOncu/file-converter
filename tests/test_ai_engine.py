@@ -4,7 +4,7 @@ Ekleme: Issue #6 — Galip Efe Öncü
 Güncelleme: Issue #16 — Galip Efe Öncü
 
 AIEngine'in tüm public metotlarını (summarize, answer_question,
-extract_keywords, simplify) monkeypatch ile mock'lanmış _call_gemini
+extract_keywords, simplify) monkeypatch ile mock'lanmış _call_groq
 üzerinden test eder. Gerçek API çağrısı yapılmaz.
 """
 
@@ -91,10 +91,10 @@ class TestEmptyInputs:
 
 
 # ---------------------------------------------------------------------------
-# 3. Monkeypatch ile _call_gemini mock testleri
+# 3. Monkeypatch ile _call_groq mock testleri
 # ---------------------------------------------------------------------------
 class TestSummarizeWithMock:
-    """summarize metodu _call_gemini'ye doğru parametreleri geçirdiğini test eder."""
+    """summarize metodu _call_groq'ye doğru parametreleri geçirdiğini test eder."""
 
     def test_summarize_medium_calls_correct_prompt(self, engine, monkeypatch):
         """summarize(length='medium') doğru system prompt'u kullanmalı."""
@@ -105,7 +105,7 @@ class TestSummarizeWithMock:
             called_with["system"] = system
             return "Mocked summary"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         result = engine.summarize("Test metni", length="medium")
 
         assert result == "Mocked summary"
@@ -120,7 +120,7 @@ class TestSummarizeWithMock:
             called_with["system"] = system
             return "Kısa özet"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         engine.summarize("Test metni", length="short")
 
         assert called_with["system"] == _SYSTEM_PROMPTS["summarize_short"]
@@ -133,7 +133,7 @@ class TestSummarizeWithMock:
             called_with["system"] = system
             return "Uzun özet"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         engine.summarize("Test metni", length="long")
 
         assert called_with["system"] == _SYSTEM_PROMPTS["summarize_long"]
@@ -146,7 +146,7 @@ class TestSummarizeWithMock:
             called_with["system"] = system
             return "Fallback özet"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         engine.summarize("Test metni", length="invalid_value")
 
         assert called_with["system"] == _SYSTEM_PROMPTS["summarize"]
@@ -164,7 +164,7 @@ class TestAnswerQuestionWithMock:
             called_with["system"] = system
             return "Mocked answer"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         result = engine.answer_question("Bağlam metni", "Test sorusu?")
 
         assert result == "Mocked answer"
@@ -177,11 +177,11 @@ class TestExtractKeywordsWithMock:
     """extract_keywords metodu doğru çalıştığını test eder."""
 
     def test_extract_keywords_parses_response(self, engine, monkeypatch):
-        """extract_keywords Gemini yanıtını satırlara ayırıp listeye çevirmeli."""
+        """extract_keywords Groq yanıtını satırlara ayırıp listeye çevirmeli."""
         def mock_call(self_inner, prompt, system=None):
             return "Python\nYapay Zeka\nMakine Öğrenimi\nDerin Öğrenme\nVeri Bilimi"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         result = engine.extract_keywords("Uzun bir test metni burada")
 
         assert isinstance(result, list)
@@ -194,7 +194,7 @@ class TestExtractKeywordsWithMock:
         def mock_call(self_inner, prompt, system=None):
             return "A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         result = engine.extract_keywords("Metin", top_k=3)
 
         assert len(result) == 3
@@ -202,9 +202,9 @@ class TestExtractKeywordsWithMock:
     def test_extract_keywords_api_failure_returns_empty(self, engine, monkeypatch):
         """API bağlantı hatası durumunda boş liste döndürmeli."""
         def mock_call(self_inner, prompt, system=None):
-            return "API bağlantısı kurulamadı. Lütfen GEMINI_API_KEY..."
+            return "API bağlantısı kurulamadı. Lütfen GROQ_API_KEY..."
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         result = engine.extract_keywords("Metin")
 
         assert isinstance(result, list)
@@ -218,7 +218,7 @@ class TestExtractKeywordsWithMock:
             called_with["system"] = system
             return "keyword1\nkeyword2"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         engine.extract_keywords("Test metni")
 
         assert called_with["system"] == _SYSTEM_PROMPTS["keywords"]
@@ -228,7 +228,7 @@ class TestExtractKeywordsWithMock:
         def mock_call(self_inner, prompt, system=None):
             return "• Python\n- Yapay Zeka\n* Veri\n1. Analiz\n2. Model"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         result = engine.extract_keywords("Test metni")
 
         assert "Python" in result
@@ -249,7 +249,7 @@ class TestSimplifyWithMock:
             called_with["system"] = system
             return "Sadeleştirilmiş metin"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         result = engine.simplify("Karmaşık metin")
 
         assert result == "Sadeleştirilmiş metin"
@@ -263,7 +263,7 @@ class TestSimplifyWithMock:
             called_with["system"] = system
             return "Basit metin"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         engine.simplify("Karmaşık metin", level="basic")
 
         assert called_with["system"] == _SYSTEM_PROMPTS["simplify_basic"]
@@ -276,7 +276,7 @@ class TestSimplifyWithMock:
             called_with["system"] = system
             return "Profesyonel metin"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         engine.simplify("Karmaşık metin", level="advanced")
 
         assert called_with["system"] == _SYSTEM_PROMPTS["simplify_advanced"]
@@ -289,7 +289,7 @@ class TestSimplifyWithMock:
             called_with["system"] = system
             return "Fallback metin"
 
-        monkeypatch.setattr(AIEngine, "_call_gemini", mock_call)
+        monkeypatch.setattr(AIEngine, "_call_groq", mock_call)
         engine.simplify("Karmaşık metin", level="nonexistent")
 
         assert called_with["system"] == _SYSTEM_PROMPTS["simplify"]

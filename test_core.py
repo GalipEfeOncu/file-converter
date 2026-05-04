@@ -21,17 +21,17 @@ def run_tests():
     basarili_mi = converter.convert_csv_to_xlsx(test_csv_path, test_xlsx_path)
     
     if basarili_mi and os.path.exists(test_xlsx_path):
-        print("✅ BAŞARILI: CSV dosyası Excel'e dönüştürüldü!\n")
+        print(" BAŞARILI: CSV dosyası Excel'e dönüştürüldü!\n")
     else:
-        print("❌ BAŞARISIZ: CSV -> Excel dönüşümünde hata!\n")
+        print(" BAŞARISIZ: CSV -> Excel dönüşümünde hata!\n")
 
     print("Test 2: Olmayan Dosyada Çökme Kontrolü (Exception Handling)")
     basarili_mi_hata = converter.convert_pdf_to_docx("temp/olmayan_dosya.pdf", "temp/sonuc.docx")
     
     if not basarili_mi_hata:
-        print("✅ BAŞARILI: Sistem çökmeyi engelledi ve düzgünce False döndürdü!\n")
+        print(" BAŞARILI: Sistem çökmeyi engelledi ve düzgünce False döndürdü!\n")
     else:
-        print("❌ BAŞARISIZ: Sistem hatayı yakalayamadı!\n")
+        print(" BAŞARISIZ: Sistem hatayı yakalayamadı!\n")
 
 if __name__ == "__main__":
     run_tests()

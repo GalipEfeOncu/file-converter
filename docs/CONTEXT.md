@@ -26,7 +26,7 @@
 | **Image Processing** | Pillow (PIL) | ~11.2.1 | Image format conversion |
 | **Audio Processing** | pydub | ~0.25.1 | Audio format conversion |
 | | audioop-lts | ~0.2.1 | Audio operations support |
-| **AI Integration** | openai | ~1.70.0 | LLM API client (planned: Gemini) |
+| **AI Integration** | openai | ~1.70.0 | LLM API client (planned: Groq) |
 | **Config** | python-dotenv | ~1.0.1 | `.env` file loading |
 | **Testing** | pytest | ~8.3.5 | Test framework |
 | **External Dependency** | FFmpeg | System-level | Required for audio conversions |
@@ -234,7 +234,7 @@ pip install -r requirements.txt
 Create/edit `.env` in project root:
 
 ```env
-GEMINI_API_KEY=your_api_key_here
+GROQ_API_KEY=your_api_key_here
 ```
 
 > The `.env` file is git-ignored. The key is loaded via `python-dotenv` in `config/settings.py`.
@@ -275,7 +275,7 @@ python test_core.py
 | Area | Status | Detail |
 |:---|:---|:---|
 | `core/player.py` | ⚠️ Bug | Contains **duplicate class definitions** (`AudioConverter` defined twice) and **duplicate `__init__`** methods. Python keeps only the last one, but the file must be cleaned up. |
-| `core/ai_engine.py` | 🔲 Stub | `summarize()` and `answer_question()` return placeholder strings. Gemini/OpenAI integration pending. |
+| `core/ai_engine.py` | 🔲 Stub | `summarize()` and `answer_question()` return placeholder strings. Groq/OpenAI integration pending. |
 | `requirements.txt` | ⚠️ Missing | `core/converter.py` imports `docx2pdf` but the package is not listed in `requirements.txt`. Add `docx2pdf~=<version>`. |
 | `ui/dashboard.py` | 🌐 Hardcoded i18n | Sidebar section labels (`🌐 Dil / Language`, `📊 Navigasyon`, `📁 Dosya Yükleme`, `⏱️ Dosya Geçmişi`, `⚙️ Ayarlar`, etc.) and warning/info messages are hardcoded in Turkish. They should be moved to `assets/languages.json`. |
 | Tab content (Convert / View / AI) | 🔌 Not wired | `Dashboard.render_main_area()` shows placeholder text ("Dönüştürme modülü yükleniyor...") and is not yet connected to `FileConverter`, `FileViewer`, or `AIEngine`. |
